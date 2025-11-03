@@ -400,12 +400,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const advProgramCol = findColumn(advanceColumns, ['program', 'programme', 'plan', 'program name']);
 
             const salesClaimIdCol = findColumn(salesColumns, [
-                'customerpo', 'customer po', ['customer', 'po'],
+                'CustomerPO', 'customerpo', 'customer po', ['customer', 'po'],  // Exact match first
                 ['claim', 'id'], 'claim number', 'reference', 'referenceid', 'claim#', 'claimnumber',
                 'order no', 'order number', 'invoice', 'project number', 'claim', 'id', 'ref'
             ]);
-            const salesStatusCol = findColumn(salesColumns, ['status', 'state', 'fulfillment', 'delivery status', 'order status']);
-            const salesProgramCol = findColumn(salesColumns, ['program', 'programme', 'plan', 'program name', 'project']);
+            const salesStatusCol = findColumn(salesColumns, [
+                'Delivery Status', 'delivery status',  // Exact match first
+                'status', 'state', 'fulfillment', 'order status'
+            ]);
+            const salesProgramCol = findColumn(salesColumns, [
+                'Project Number', 'project number',  // Exact match first
+                'program', 'programme', 'plan', 'program name', 'project'
+            ]);
 
             console.log('Auto-detected columns:', {
                 advance: { claimId: advClaimIdCol, status: advStatusCol, program: advProgramCol },
