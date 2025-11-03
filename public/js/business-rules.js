@@ -110,12 +110,38 @@ function getStatusPhase(status360, goldieStatuses) {
     return { phase: 'other', color: '#f9fafb', label: 'Other', icon: '📋' };
 }
 
+// Get phase sort order (0 = first, 5 = last)
+function getPhaseSortOrder(status360, goldieStatuses) {
+    const phaseInfo = getStatusPhase(status360, goldieStatuses);
+    const phaseOrder = {
+        'pre-order': 0,
+        'authorization': 1,
+        'shipment': 2,
+        'delivery': 3,
+        'completion': 4,
+        'exception': 5,
+        'other': 6
+    };
+    return phaseOrder[phaseInfo.phase] || 999;
+}
+
 // Render the business rules table with improved UI
 function renderBusinessRulesTable() {
     const container = document.getElementById('businessRulesTable');
     if (!container) return;
 
-    const rules = Object.entries(STATUS_MAPPINGS).sort((a, b) => a[0].localeCompare(b[0]));
+    // Sort by phase order first, then alphabetically within each phase
+    const rules = Object.entries(STATUS_MAPPINGS).sort((a, b) => {
+        const phaseOrderA = getPhaseSortOrder(a[0], a[1]);
+        const phaseOrderB = getPhaseSortOrder(b[0], b[1]);
+
+        if (phaseOrderA !== phaseOrderB) {
+            return phaseOrderA - phaseOrderB;
+        }
+
+        // Same phase, sort alphabetically
+        return a[0].localeCompare(b[0]);
+    });
 
     // Add help/explanation section at the top
     let html = `
