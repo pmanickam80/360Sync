@@ -643,12 +643,16 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                 const found = columns.find(col => {
                     const lowerCol = col.toLowerCase();
                     if (Array.isArray(pattern)) {
-                        return pattern.every(p => lowerCol.includes(p));
+                        return pattern.every(p => lowerCol.includes(p.toLowerCase()));
                     }
-                    return lowerCol.includes(pattern);
+                    return lowerCol.includes(pattern.toLowerCase());
                 });
-                if (found) return found;
+                if (found) {
+                    console.log(`✅ Found column match: "${found}" for pattern: ${JSON.stringify(pattern)}`);
+                    return found;
+                }
             }
+            console.warn(`⚠️ No match found for patterns: ${JSON.stringify(patterns)}, falling back to first column`);
             return columns[0]; // fallback to first column
         }
 
