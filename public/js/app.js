@@ -383,8 +383,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         function populateColumnSelectors() {
+            console.log('📋 populateColumnSelectors started');
             const advanceColumns = Object.keys(advanceExchangeData[0] || {});
             const salesColumns = Object.keys(salesOrderData[0] || {});
+
+            console.log('Available columns:', {
+                advance: advanceColumns,
+                sales: salesColumns
+            });
 
             // Auto-detect columns
             const advClaimIdCol = findColumn(advanceColumns, [
@@ -400,6 +406,11 @@ document.addEventListener('DOMContentLoaded', function() {
             ]);
             const salesStatusCol = findColumn(salesColumns, ['status', 'state', 'fulfillment', 'delivery status', 'order status']);
             const salesProgramCol = findColumn(salesColumns, ['program', 'programme', 'plan', 'program name', 'project']);
+
+            console.log('Auto-detected columns:', {
+                advance: { claimId: advClaimIdCol, status: advStatusCol, program: advProgramCol },
+                sales: { claimId: salesClaimIdCol, status: salesStatusCol, program: salesProgramCol }
+            });
 
             // Populate 360 dropdowns
             populateDropdown('advance360ClaimId', advanceColumns, advClaimIdCol);
@@ -645,6 +656,14 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                     sales: { claimId: claimIdCol, status: statusCol, program: programCol }
                 });
 
+                // Validate columns are not undefined
+                if (!advClaimIdCol || !advStatusCol || !advProgramCol) {
+                    throw new Error(`Missing advance exchange columns: claimId=${advClaimIdCol}, status=${advStatusCol}, program=${advProgramCol}`);
+                }
+                if (!claimIdCol || !statusCol || !programCol) {
+                    throw new Error(`Missing sales order columns: claimId=${claimIdCol}, status=${statusCol}, program=${programCol}`);
+                }
+
                 // Create debug info
                 const debugInfo = {
                     advance360: {
@@ -654,7 +673,7 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                             status: advStatusCol,
                             program: advProgramCol
                         },
-                        sampleClaimId: advanceExchangeData[0][advClaimIdCol]
+                        sampleClaimId: advanceExchangeData[0]?.[advClaimIdCol]
                     },
                     salesOrder: {
                         totalRecords: salesOrderData.length,
@@ -663,7 +682,7 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                             status: statusCol,
                             program: programCol
                         },
-                        sampleClaimId: salesOrderData[0][claimIdCol]
+                        sampleClaimId: salesOrderData[0]?.[claimIdCol]
                     }
                 };
 
