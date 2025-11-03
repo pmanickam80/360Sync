@@ -133,13 +133,64 @@
             <!-- Status Mapping Section -->
             <section id="statusSection" class="content-section">
                 <div class="section-header">
-                    <h2>Status Mapping & Business Rules</h2>
-                    <p>Define valid status combinations based on SOP-002 Advance Exchange Process</p>
+                    <h2>Business Rules Management</h2>
+                    <p>Manage status mappings and validation rules for Advance Exchange synchronization</p>
                 </div>
 
                 <div id="statusMappingContent">
-                    <div class="info-message">
-                        Upload files first to view and configure status mappings
+                    <!-- Business Rules Toolbar -->
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <button class="primary-button" onclick="loadDefaultRules()" style="font-size: 14px;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                            </svg>
+                            Load Default Rules
+                        </button>
+                        <button class="primary-button" onclick="exportRules()" style="font-size: 14px; background: #10b981;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Export Rules
+                        </button>
+                        <button class="primary-button" onclick="document.getElementById('importRulesFile').click()" style="font-size: 14px; background: #8b5cf6;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            Import Rules
+                        </button>
+                        <input type="file" id="importRulesFile" accept=".json" style="display: none;" onchange="importRules(event)">
+                        <button class="primary-button" onclick="saveRulesToStorage()" style="font-size: 14px; background: #f59e0b;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                <path d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                            </svg>
+                            Save Rules
+                        </button>
+                        <button class="primary-button" onclick="addNewRule()" style="font-size: 14px; background: #06b6d4;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                <path d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Add Rule
+                        </button>
+                        <button class="primary-button" onclick="validateRules()" style="font-size: 14px; background: #ec4899;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Validate Rules
+                        </button>
+                    </div>
+
+                    <!-- Business Rules Table -->
+                    <div id="businessRulesTable" style="margin-top: 20px;">
+                        <div class="info-message">
+                            Click "Load Default Rules" to start, or upload files to auto-detect statuses
+                        </div>
+                    </div>
+
+                    <!-- Audit Log Section -->
+                    <div id="auditLogSection" style="margin-top: 30px; display: none;">
+                        <h3 style="color: #374151; margin-bottom: 10px;">Change History</h3>
+                        <div id="auditLog" style="max-height: 200px; overflow-y: auto; background: #f9fafb; padding: 15px; border-radius: 8px; font-size: 13px;">
+                        </div>
                     </div>
                 </div>
             </section>
@@ -165,6 +216,7 @@
     </div>
 
     <script src="js/auth-check.js"></script>
+    <script src="js/business-rules.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
