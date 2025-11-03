@@ -72,20 +72,124 @@ function loadDefaultRules() {
     alert('Default business rules loaded successfully! Total rules: ' + Object.keys(defaultRules).length);
 }
 
-// Render the business rules table
+// Categorize status by phase for color coding
+function getStatusPhase(status360, goldieStatuses) {
+    const statusLower = status360.toLowerCase();
+
+    // Pre-order phase (no Goldie expected)
+    if (goldieStatuses.length === 0) {
+        return { phase: 'pre-order', color: '#f3f4f6', label: 'Pre-Order', icon: '⏳' };
+    }
+
+    // Authorization phase
+    if (statusLower.includes('authorized') || statusLower.includes('approved')) {
+        return { phase: 'authorization', color: '#dbeafe', label: 'Authorization', icon: '✅' };
+    }
+
+    // Shipment phase
+    if (statusLower.includes('dispatch') || statusLower.includes('transit') || statusLower.includes('shipped')) {
+        return { phase: 'shipment', color: '#fef3c7', label: 'Shipment', icon: '📦' };
+    }
+
+    // Delivery phase
+    if (statusLower.includes('delivery') || statusLower.includes('delivered')) {
+        return { phase: 'delivery', color: '#d1fae5', label: 'Delivery', icon: '🚚' };
+    }
+
+    // Completion phase
+    if (statusLower.includes('completed') || statusLower.includes('closed') || statusLower.includes('service completed')) {
+        return { phase: 'completion', color: '#dcfce7', label: 'Completed', icon: '✔️' };
+    }
+
+    // Exception handling
+    if (statusLower.includes('exception') || statusLower.includes('failed') || statusLower.includes('return')) {
+        return { phase: 'exception', color: '#fee2e2', label: 'Exception', icon: '⚠️' };
+    }
+
+    // Default
+    return { phase: 'other', color: '#f9fafb', label: 'Other', icon: '📋' };
+}
+
+// Render the business rules table with improved UI
 function renderBusinessRulesTable() {
     const container = document.getElementById('businessRulesTable');
     if (!container) return;
 
     const rules = Object.entries(STATUS_MAPPINGS).sort((a, b) => a[0].localeCompare(b[0]));
 
+    // Add help/explanation section at the top
     let html = `
-        <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
-            <thead style="background: #667eea; color: white;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3 style="margin: 0 0 10px 0; font-size: 18px;">📚 What are Business Rules?</h3>
+            <p style="margin: 0 0 15px 0; font-size: 14px; line-height: 1.6; opacity: 0.95;">
+                Business rules define the <strong>expected synchronization behavior</strong> between 360 Advance Exchange and Goldie Sales Order systems.
+                Each rule maps a <strong>360 status</strong> to the <strong>valid Goldie statuses</strong> that should exist when claims are synchronized.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;">
+                <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px;">
+                    <div style="font-weight: 600; margin-bottom: 5px;">✅ Match Found</div>
+                    <div style="font-size: 13px; opacity: 0.9;">The Goldie status matches one of the expected statuses → <strong>Normal operation</strong></div>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px;">
+                    <div style="font-weight: 600; margin-bottom: 5px;">❌ Mismatch Detected</div>
+                    <div style="font-size: 13px; opacity: 0.9;">The Goldie status doesn't match any expected status → <strong>Synchronization failure</strong></div>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 12px; border-radius: 6px;">
+                    <div style="font-weight: 600; margin-bottom: 5px;">⏳ No Match Expected</div>
+                    <div style="font-size: 13px; opacity: 0.9;">Empty Goldie statuses = Pre-order phase → <strong>No sync required</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Start Guide -->
+        <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; margin-bottom: 20px; border-radius: 6px;">
+            <h4 style="margin: 0 0 10px 0; color: #065f46; font-size: 15px;">🚀 Quick Start Guide</h4>
+            <ol style="margin: 0; padding-left: 20px; color: #064e3b; font-size: 13px; line-height: 1.8;">
+                <li><strong>Click "Load Default Rules"</strong> to load pre-configured rules based on SOP-002 Advance Exchange Process</li>
+                <li><strong>Review the rules</strong> in the table below - each row shows a 360 status and its valid Goldie statuses</li>
+                <li><strong>Edit as needed</strong> - Click any cell to modify, or use Add/Delete buttons for custom rules</li>
+                <li><strong>Save your changes</strong> - Click "Save Rules" to store rules in browser or "Export Rules" for backup</li>
+                <li><strong>Validate rules</strong> - Click "Validate Rules" to check for conflicts or formatting issues</li>
+            </ol>
+        </div>
+
+        <!-- Example Rule -->
+        <div style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 20px; border-radius: 6px;">
+            <h4 style="margin: 0 0 10px 0; color: #92400e; font-size: 15px;">💡 Example Rule</h4>
+            <div style="font-family: monospace; background: white; padding: 12px; border-radius: 6px; margin: 10px 0; border: 1px solid #fcd34d;">
+                <div style="color: #065f46; margin-bottom: 5px;"><strong>360 Status:</strong> "replacement authorized"</div>
+                <div style="color: #1e40af;"><strong>Valid Goldie Statuses:</strong> "shipment information sent to fedex", "picked up", "on the way"</div>
+            </div>
+            <p style="margin: 10px 0 0 0; font-size: 13px; color: #78350f; line-height: 1.6;">
+                <strong>Meaning:</strong> When a claim in 360 has status "replacement authorized", the Goldie system should show
+                one of these three statuses. If Goldie shows something else (like "delivered" or "cancelled"), it's flagged as a synchronization error.
+            </p>
+        </div>
+
+        <!-- Phase Legend -->
+        <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e5e7eb;">
+            <h4 style="margin: 0 0 10px 0; color: #374151; font-size: 15px;">🎨 Phase Color Coding</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px;">
+                <span style="background: #f3f4f6; padding: 6px 12px; border-radius: 4px; border: 1px solid #d1d5db;">⏳ Pre-Order</span>
+                <span style="background: #dbeafe; padding: 6px 12px; border-radius: 4px; border: 1px solid #93c5fd;">✅ Authorization</span>
+                <span style="background: #fef3c7; padding: 6px 12px; border-radius: 4px; border: 1px solid #fde047;">📦 Shipment</span>
+                <span style="background: #d1fae5; padding: 6px 12px; border-radius: 4px; border: 1px solid #6ee7b7;">🚚 Delivery</span>
+                <span style="background: #dcfce7; padding: 6px 12px; border-radius: 4px; border: 1px solid #86efac;">✔️ Completed</span>
+                <span style="background: #fee2e2; padding: 6px 12px; border-radius: 4px; border: 1px solid #fca5a5;">⚠️ Exception</span>
+            </div>
+        </div>
+
+        <!-- Rules Table -->
+        <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
+            <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
                 <tr>
-                    <th style="padding: 12px; text-align: left; font-weight: 600; width: 35%;">360 Advance Exchange Status</th>
-                    <th style="padding: 12px; text-align: left; font-weight: 600; width: 50%;">Valid Goldie Statuses (comma-separated)</th>
-                    <th style="padding: 12px; text-align: center; font-weight: 600; width: 15%;">Actions</th>
+                    <th style="padding: 14px 12px; text-align: left; font-weight: 600; width: 5%;">Phase</th>
+                    <th style="padding: 14px 12px; text-align: left; font-weight: 600; width: 35%;">360 Advance Exchange Status</th>
+                    <th style="padding: 14px 12px; text-align: left; font-weight: 600; width: 45%;">
+                        Valid Goldie Statuses
+                        <span style="font-size: 11px; font-weight: 400; opacity: 0.9;">(comma-separated, leave empty for pre-order)</span>
+                    </th>
+                    <th style="padding: 14px 12px; text-align: center; font-weight: 600; width: 15%;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -93,30 +197,40 @@ function renderBusinessRulesTable() {
 
     rules.forEach(([status360, goldieStatuses], index) => {
         const goldieValue = Array.isArray(goldieStatuses) ? goldieStatuses.join(', ') : '';
-        const rowColor = index % 2 === 0 ? '#f9fafb' : 'white';
+        const phaseInfo = getStatusPhase(status360, goldieStatuses);
+        const rowColor = phaseInfo.color;
 
         html += `
-            <tr style="background: ${rowColor}; border-bottom: 1px solid #e5e7eb;">
+            <tr style="background: ${rowColor}; border-bottom: 1px solid #e5e7eb; transition: all 0.2s;"
+                onmouseover="this.style.transform='scale(1.01)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';"
+                onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
+                <td style="padding: 12px; text-align: center; font-size: 18px;" title="${phaseInfo.label}">
+                    ${phaseInfo.icon}
+                </td>
                 <td style="padding: 12px;">
                     <input type="text"
                            value="${status360}"
                            onchange="updateRuleStatus(this, '${status360}')"
-                           style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;"
+                           style="width: 100%; padding: 10px; border: 2px solid #d1d5db; border-radius: 6px; font-size: 13px; font-weight: 500; transition: border 0.2s;"
+                           onfocus="this.style.borderColor='#667eea'"
+                           onblur="this.style.borderColor='#d1d5db'"
                            placeholder="360 Status">
                 </td>
                 <td style="padding: 12px;">
                     <input type="text"
                            value="${goldieValue}"
                            onchange="updateRuleGoldieStatuses('${status360}', this.value)"
-                           style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;"
-                           placeholder="Goldie statuses (comma-separated) or leave empty for no match expected">
+                           style="width: 100%; padding: 10px; border: 2px solid #d1d5db; border-radius: 6px; font-size: 13px; transition: border 0.2s;"
+                           onfocus="this.style.borderColor='#667eea'"
+                           onblur="this.style.borderColor='#d1d5db'"
+                           placeholder="${goldieStatuses.length === 0 ? '(Leave empty = No Goldie expected)' : 'Enter comma-separated statuses'}">
                 </td>
                 <td style="padding: 12px; text-align: center;">
                     <button onclick="deleteRule('${status360}')"
-                            style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;"
-                            onmouseover="this.style.background='#dc2626'"
-                            onmouseout="this.style.background='#ef4444'">
-                        Delete
+                            style="background: #ef4444; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.2s;"
+                            onmouseover="this.style.background='#dc2626'; this.style.transform='scale(1.05)'"
+                            onmouseout="this.style.background='#ef4444'; this.style.transform='scale(1)'">
+                        🗑️ Delete
                     </button>
                 </td>
             </tr>
@@ -126,9 +240,15 @@ function renderBusinessRulesTable() {
     html += `
             </tbody>
         </table>
-        <div style="margin-top: 15px; color: #6b7280; font-size: 13px;">
-            <strong>Total Rules:</strong> ${rules.length} |
-            <strong>Tip:</strong> Leave Goldie statuses empty if no match is expected (e.g., for pre-order statuses)
+        <div style="margin-top: 20px; padding: 15px; background: #f9fafb; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div style="color: #374151; font-size: 14px;">
+                <strong>📊 Total Rules:</strong> ${rules.length} |
+                <strong>⏳ Pre-Order:</strong> ${rules.filter(([_, statuses]) => statuses.length === 0).length} |
+                <strong>✅ Active Rules:</strong> ${rules.filter(([_, statuses]) => statuses.length > 0).length}
+            </div>
+            <div style="color: #6b7280; font-size: 12px; font-style: italic;">
+                💡 Tip: Use "Export Rules" to backup your configuration before making major changes
+            </div>
         </div>
     `;
 
