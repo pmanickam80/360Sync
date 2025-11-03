@@ -394,10 +394,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Auto-detect columns
             const advClaimIdCol = findColumn(advanceColumns, [
-                ['claim', 'id'], 'claim number', 'reference', 'referenceid', 'claim#', 'claimnumber', 'claim', 'id', 'ref'
+                'ReferenceID', 'referenceid', 'reference id',  // Exact match first
+                ['claim', 'id'], 'claim number', 'reference', 'claim#', 'claimnumber', 'claim', 'id', 'ref'
             ]);
-            const advStatusCol = findColumn(advanceColumns, ['status', 'state', 'claim status', 'csr status']);
-            const advProgramCol = findColumn(advanceColumns, ['program', 'programme', 'plan', 'program name']);
+            const advStatusCol = findColumn(advanceColumns, [
+                'CSR Status', 'csr status',  // Exact match first
+                'status', 'state', 'claim status'
+            ]);
+            const advProgramCol = findColumn(advanceColumns, [
+                'Program Name', 'program name',  // Exact match first
+                'program', 'programme', 'plan'
+            ]);
 
             const salesClaimIdCol = findColumn(salesColumns, [
                 'CustomerPO', 'customerpo', 'customer po', ['customer', 'po'],  // Exact match first
@@ -683,6 +690,8 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                     },
                     salesOrder: {
                         totalRecords: salesOrderData.length,
+                        uniqueRecords: 0,  // Will be updated after deduplication
+                        duplicateRecords: 0,  // Will be updated after deduplication
                         detectedColumns: {
                             claimId: claimIdCol,
                             status: statusCol,
@@ -692,11 +701,19 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                     }
                 };
 
-                // Create a map of sales order data by claim ID
+                // Create a map of sales order data by claim ID (with deduplication)
                 const salesOrderMap = new Map();
+                let duplicateCount = 0;
+                const duplicateClaimIds = new Set();
+
                 salesOrderData.forEach(row => {
                     const claimId = normalizeClaimId(row[claimIdCol]);
                     if (claimId) {
+                        if (salesOrderMap.has(claimId)) {
+                            duplicateCount++;
+                            duplicateClaimIds.add(claimId);
+                        }
+                        // Latest entry will overwrite - keeping most recent
                         salesOrderMap.set(claimId, {
                             program: row[programCol] || 'Unknown',
                             status: row[statusCol] || '',
@@ -704,6 +721,13 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                         });
                     }
                 });
+
+                console.log(`📊 Deduplication: Found ${duplicateCount} duplicate records across ${duplicateClaimIds.size} unique claim IDs`);
+                console.log(`✅ Unique sales orders after deduplication: ${salesOrderMap.size}`);
+
+                // Update debug info with deduplication stats
+                debugInfo.salesOrder.uniqueRecords = salesOrderMap.size;
+                debugInfo.salesOrder.duplicateRecords = duplicateCount;
 
                 // Track failures by category
                 const interfaceFailures = {}; // 360 claims not in Goldie
