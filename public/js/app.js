@@ -15,7 +15,8 @@ function showSection(sectionName) {
         'upload': 'uploadSection',
         'mapping': 'mappingSection',
         'status': 'statusSection',
-        'analysis': 'analysisSection'
+        'analysis': 'analysisSection',
+        'sla': 'slaSection'
     };
 
     const section = document.getElementById(sectionMap[sectionName]);
@@ -23,12 +24,21 @@ function showSection(sectionName) {
         section.classList.add('active');
     }
 
-    // Set active nav item
-    if (event && event.target) {
+    // Set active nav item (only if called from a click event)
+    if (typeof event !== 'undefined' && event && event.target) {
         const navItem = event.target.closest('.nav-item');
         if (navItem) {
             navItem.classList.add('active');
         }
+    } else {
+        // Programmatic navigation - find and activate the corresponding nav item
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            const onclick = item.getAttribute('onclick');
+            if (onclick && onclick.includes(`'${sectionName}'`)) {
+                item.classList.add('active');
+            }
+        });
     }
 }
 
