@@ -475,8 +475,8 @@ document.addEventListener('DOMContentLoaded', function() {
             populateDropdown('salesOrderStatus', salesColumns, salesStatusCol);
             populateDropdown('salesOrderProgram', salesColumns, salesProgramCol);
 
-            // Show unique statuses
-            showUniqueStatuses(advStatusCol, salesStatusCol);
+            // Auto-detect and add new statuses to business rules if they don't exist
+            autoDetectStatuses(advStatusCol, salesStatusCol);
         }
 
         function populateDropdown(selectId, columns, selectedColumn) {
@@ -496,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        function showUniqueStatuses(advStatusCol, salesStatusCol) {
+        function autoDetectStatuses(advStatusCol, salesStatusCol) {
             // Get unique statuses from both files
             const statuses360 = new Set();
             const statusesGoldie = new Set();
@@ -511,121 +511,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (status) statusesGoldie.add(status);
             });
 
-            const sorted360 = Array.from(statuses360).sort();
-            const sortedGoldie = Array.from(statusesGoldie).sort();
+            console.log(`📊 Auto-detected ${statuses360.size} unique 360 statuses and ${statusesGoldie.size} unique Goldie statuses`);
 
-            // Display in results section
-            const resultsSection = document.getElementById('resultsSection');
-            if (!resultsSection) return; // Exit if element doesn't exist
-
-            resultsSection.classList.add('show');
-            resultsSection.innerHTML = `
-                <h2 style="margin-bottom: 20px; color: #333;">Status Mapping & Business Rules</h2>
-
-                <div class="debug-section">
-                    <h3>All Unique Statuses Found</h3>
-
-                    <div class="status-columns">
-                        <div class="status-column">
-                            <h4>360 Statuses (${statuses360.size} unique)</h4>
-                            ${sorted360.map(s => `<div class="status-item">${s}</div>`).join('')}
-                        </div>
-                        <div class="status-column">
-                            <h4>Goldie Statuses (${statusesGoldie.size} unique)</h4>
-                            ${sortedGoldie.map(s => `<div class="status-item goldie">${s}</div>`).join('')}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="debug-section" style="margin-top: 20px;">
-                    <h3>Business Rule Mapping Table</h3>
-                    <p style="font-size: 13px; color: #666; margin-bottom: 10px;">
-                        Define which Goldie statuses are valid for each 360 status. Enter comma-separated Goldie status values.
-                    </p>
-
-                    <table class="status-mapping-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 30%;">360 Status</th>
-                                <th style="width: 70%;">Valid Goldie Statuses (comma-separated)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${sorted360.map((status360, idx) => {
-                                const normalized = status360.toLowerCase().trim();
-                                const existing = STATUS_MAPPINGS[normalized] || [];
-                                return `
-                                    <tr>
-                                        <td><strong>${status360}</strong></td>
-                                        <td>
-                                            <textarea
-                                                class="mapping-input"
-                                                id="mapping_${idx}"
-                                                placeholder="Enter valid Goldie statuses (e.g., Delivered, DELIVERED, On the way)"
-                                            >${existing.join(', ')}</textarea>
-                                        </td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-
-                    <button
-                        class="process-btn"
-                        style="margin-top: 20px; width: auto; padding: 12px 30px;"
-                        onclick="updateMappingsFromTable()"
-                    >
-                        Update Business Rules & Analyze
-                    </button>
-                </div>
-
-                <div class="debug-section" style="margin-top: 20px;">
-                    <h3>Current Business Rules (JSON)</h3>
-                    <div class="sample-data" id="currentRulesJSON">
-${JSON.stringify(STATUS_MAPPINGS, null, 2)}
-                    </div>
-                    <p style="margin-top: 10px; font-size: 12px; color: #666;">
-                        This shows the current mapping rules. Update the table above and click "Update Business Rules & Analyze" to apply changes.
-                    </p>
-                </div>
-            `;
-
-            // Store statuses for later use
-            window.sorted360Statuses = sorted360;
-            window.sortedGoldieStatuses = sortedGoldie;
-        }
-
-        function updateMappingsFromTable() {
-            const sorted360 = window.sorted360Statuses;
-
-            // Read mappings from table
-            sorted360.forEach((status360, idx) => {
-                const input = document.getElementById(`mapping_${idx}`);
-                if (input) {
-                    const value = input.value.trim();
-                    const normalized360 = status360.toLowerCase().trim();
-
-                    if (value) {
-                        // Parse comma-separated values
-                        const goldieStatuses = value.split(',').map(s => s.trim().toLowerCase()).filter(s => s);
-                        STATUS_MAPPINGS[normalized360] = goldieStatuses;
-                    } else {
-                        // Remove mapping if empty
-                        delete STATUS_MAPPINGS[normalized360];
-                    }
+            // Auto-add 360 statuses to STATUS_MAPPINGS if they don't exist
+            let newStatusCount = 0;
+            statuses360.forEach(status => {
+                const normalized = status.toLowerCase().trim();
+                if (!STATUS_MAPPINGS[normalized]) {
+                    STATUS_MAPPINGS[normalized] = []; // Empty array = no Goldie expected by default
+                    newStatusCount++;
                 }
             });
 
-            // Update the JSON display
-            const currentRulesJSON = document.getElementById('currentRulesJSON');
-            if (currentRulesJSON) {
-                currentRulesJSON.textContent = JSON.stringify(STATUS_MAPPINGS, null, 2);
+            if (newStatusCount > 0) {
+                console.log(`✅ Added ${newStatusCount} new statuses to business rules`);
+                // Refresh the business rules table if it's currently displayed
+                if (typeof renderBusinessRulesTable === 'function') {
+                    renderBusinessRulesTable();
+                }
             }
 
-            // Show success message and process
-            alert('Business rules updated! Now analyzing data...');
-            processReports();
+            // Store statuses for reference
+            window.detected360Statuses = Array.from(statuses360).sort();
+            window.detectedGoldieStatuses = Array.from(statusesGoldie).sort();
         }
+
 
         async function processReports() {
             console.log('🔄 processReports started');
@@ -1134,30 +1044,5 @@ populateColumnSelectors = function() {
     }
 
     originalPopulateColumnSelectors();
-};
-
-// Override status mapping display
-const originalShowUniqueStatuses = showUniqueStatuses;
-showUniqueStatuses = function(advStatusCol, salesStatusCol) {
-    // Store original results section
-    const originalResultsSection = document.getElementById('resultsSection');
-    const statusMappingContent = document.getElementById('statusMappingContent');
-
-    if (statusMappingContent && originalResultsSection) {
-        // Temporarily redirect resultsSection
-        originalResultsSection.id = 'resultsSection-temp';
-        statusMappingContent.id = 'resultsSection';
-    }
-
-    originalShowUniqueStatuses(advStatusCol, salesStatusCol);
-
-    const tempSection = document.getElementById('resultsSection-temp');
-    const currentStatusSection = document.getElementById('resultsSection');
-
-    if (tempSection && currentStatusSection) {
-        // Restore IDs
-        currentStatusSection.id = 'statusMappingContent';
-        tempSection.id = 'resultsSection';
-    }
 };
 
