@@ -539,15 +539,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         async function processReports() {
             console.log('🔄 processReports started');
-            const resultsSection = document.getElementById('resultsSection');
-            if (!resultsSection) {
-                console.error('❌ resultsSection element not found!');
+            const resultsContent = document.getElementById('resultsContent');
+            if (!resultsContent) {
+                console.error('❌ resultsContent element not found!');
                 return; // Exit if element doesn't exist
             }
 
-            console.log('✅ resultsSection found:', resultsSection);
-            resultsSection.classList.add('show');
-            resultsSection.innerHTML = '<div class="loading">Processing reports...</div>';
+            console.log('✅ resultsContent found:', resultsContent);
+            resultsContent.innerHTML = '<div class="loading">Processing reports...</div>';
 
             try {
                 // Now process the combined data with user-selected columns
@@ -555,7 +554,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 analyzeData();
 
             } catch (error) {
-                resultsSection.innerHTML = `
+                resultsContent.innerHTML = `
                     <div class="error-message">
                         <strong>Error processing reports:</strong> ${error.message}
                         <br><br>
@@ -763,9 +762,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 showSection('analysis');
 
             } catch (error) {
-                const resultsSection = document.getElementById('resultsSection');
-                if (resultsSection) {
-                    resultsSection.innerHTML = `
+                const resultsContent = document.getElementById('resultsContent');
+                if (resultsContent) {
+                    resultsContent.innerHTML = `
                         <div class="error-message">
                             <strong>Error analyzing data:</strong> ${error.message}
                             <br><br>
@@ -803,13 +802,13 @@ document.addEventListener('DOMContentLoaded', function() {
         function displayResults(interfaceFailures, statusMismatches, totalRecords, totalMatched,
                                totalInterfaceFailures, totalStatusMismatches, debugInfo) {
             console.log('🎨 displayResults started');
-            const resultsSection = document.getElementById('resultsSection');
-            if (!resultsSection) {
-                console.error('❌ resultsSection not found in displayResults!');
+            const resultsContent = document.getElementById('resultsContent');
+            if (!resultsContent) {
+                console.error('❌ resultsContent not found in displayResults!');
                 return; // Exit if element doesn't exist
             }
 
-            console.log('✅ resultsSection found, generating HTML...');
+            console.log('✅ resultsContent found, generating HTML...');
             const totalIssues = totalInterfaceFailures + totalStatusMismatches;
 
             // Combine all programs from both failure types
@@ -979,8 +978,8 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                 </div>
             `;
 
-            console.log('Setting resultsSection.innerHTML...');
-            resultsSection.innerHTML = `
+            console.log('Setting resultsContent.innerHTML...');
+            resultsContent.innerHTML = `
                 <h2 style="margin-bottom: 20px; color: #333;">Analysis Results</h2>
                 ${tabsHTML}
                 ${overviewHTML}
