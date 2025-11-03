@@ -33,3 +33,12 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+~$*
+
+# Data files (sample reports)
+*.xlsx
+*.csv
+*.xls
+
+# Keep sample file structure but ignore actual data
+!sample_data/.gitkeep

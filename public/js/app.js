@@ -18,10 +18,18 @@ function showSection(sectionName) {
         'analysis': 'analysisSection'
     };
 
-    document.getElementById(sectionMap[sectionName]).classList.add('active');
+    const section = document.getElementById(sectionMap[sectionName]);
+    if (section) {
+        section.classList.add('active');
+    }
 
     // Set active nav item
-    event.target.closest('.nav-item').classList.add('active');
+    if (event && event.target) {
+        const navItem = event.target.closest('.nav-item');
+        if (navItem) {
+            navItem.classList.add('active');
+        }
+    }
 }
 
 // Update clock in header
@@ -180,26 +188,55 @@ document.addEventListener('DOMContentLoaded', function() {
         let advanceExchangeData = [];
         let salesOrderData = [];
 
-        // File input handlers
-        document.getElementById('advanceExchangeFiles').addEventListener('change', function(e) {
-            handleMultipleFiles(Array.from(e.target.files), 'advance');
-        });
+        // File input handlers - Initialize only if elements exist
+        window.initializeFileHandlers = function() {
+            const advanceInput = document.getElementById('advanceExchangeFiles');
+            const salesInput = document.getElementById('salesOrderFiles');
+            const processBtn = document.getElementById('processBtn');
 
-        document.getElementById('salesOrderFiles').addEventListener('change', function(e) {
-            handleMultipleFiles(Array.from(e.target.files), 'sales');
-        });
+            if (advanceInput && !advanceInput.hasAttribute('data-initialized')) {
+                advanceInput.setAttribute('data-initialized', 'true');
+                advanceInput.addEventListener('change', function(e) {
+                    handleMultipleFiles(Array.from(e.target.files), 'advance');
+                });
+            }
 
-        document.getElementById('processBtn').addEventListener('click', loadFilesAndShowMapping);
+            if (salesInput && !salesInput.hasAttribute('data-initialized')) {
+                salesInput.setAttribute('data-initialized', 'true');
+                salesInput.addEventListener('change', function(e) {
+                    handleMultipleFiles(Array.from(e.target.files), 'sales');
+                });
+            }
+
+            if (processBtn && !processBtn.hasAttribute('data-initialized')) {
+                processBtn.setAttribute('data-initialized', 'true');
+                processBtn.addEventListener('click', loadFilesAndShowMapping);
+            }
+        }
+
+        // Initialize when DOM is ready and elements exist
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => setTimeout(window.initializeFileHandlers, 200));
+        } else {
+            // DOM already loaded, initialize immediately if elements exist
+            setTimeout(window.initializeFileHandlers, 200);
+        }
 
         function handleMultipleFiles(files, type) {
             if (type === 'advance') {
                 advanceExchangeFiles = advanceExchangeFiles.concat(files);
                 displayFileList(advanceExchangeFiles, 'advanceFileList', 'advance');
-                document.getElementById('advanceCount').textContent = `${advanceExchangeFiles.length} file${advanceExchangeFiles.length !== 1 ? 's' : ''}`;
+                const advanceCount = document.getElementById('advanceCount');
+                if (advanceCount) {
+                    advanceCount.textContent = `${advanceExchangeFiles.length} file${advanceExchangeFiles.length !== 1 ? 's' : ''}`;
+                }
             } else {
                 salesOrderFiles = salesOrderFiles.concat(files);
                 displayFileList(salesOrderFiles, 'salesFileList', 'sales');
-                document.getElementById('salesCount').textContent = `${salesOrderFiles.length} file${salesOrderFiles.length !== 1 ? 's' : ''}`;
+                const salesCount = document.getElementById('salesCount');
+                if (salesCount) {
+                    salesCount.textContent = `${salesOrderFiles.length} file${salesOrderFiles.length !== 1 ? 's' : ''}`;
+                }
             }
 
             checkEnableProcess();
@@ -207,6 +244,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function displayFileList(files, containerId, type) {
             const container = document.getElementById(containerId);
+            if (!container) return; // Exit if element doesn't exist
+
             container.innerHTML = '';
 
             files.forEach((file, index) => {
@@ -231,11 +270,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (type === 'advance') {
                 advanceExchangeFiles.splice(index, 1);
                 displayFileList(advanceExchangeFiles, 'advanceFileList', 'advance');
-                document.getElementById('advanceCount').textContent = `${advanceExchangeFiles.length} file${advanceExchangeFiles.length !== 1 ? 's' : ''}`;
+                const advanceCount = document.getElementById('advanceCount');
+                if (advanceCount) {
+                    advanceCount.textContent = `${advanceExchangeFiles.length} file${advanceExchangeFiles.length !== 1 ? 's' : ''}`;
+                }
             } else {
                 salesOrderFiles.splice(index, 1);
                 displayFileList(salesOrderFiles, 'salesFileList', 'sales');
-                document.getElementById('salesCount').textContent = `${salesOrderFiles.length} file${salesOrderFiles.length !== 1 ? 's' : ''}`;
+                const salesCount = document.getElementById('salesCount');
+                if (salesCount) {
+                    salesCount.textContent = `${salesOrderFiles.length} file${salesOrderFiles.length !== 1 ? 's' : ''}`;
+                }
             }
 
             checkEnableProcess();
@@ -243,7 +288,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function checkEnableProcess() {
             const btn = document.getElementById('processBtn');
-            btn.disabled = !(advanceExchangeFiles.length > 0 && salesOrderFiles.length > 0);
+            if (btn) {
+                btn.disabled = !(advanceExchangeFiles.length > 0 && salesOrderFiles.length > 0);
+            }
         }
 
         function parseFile(file) {
@@ -306,7 +353,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Show column mapping UI
                 populateColumnSelectors();
-                document.getElementById('columnMapping').classList.add('show');
+                const columnMapping = document.getElementById('columnMapping');
+                if (columnMapping) {
+                    columnMapping.classList.add('show');
+                }
 
                 processBtn.disabled = false;
                 processBtn.textContent = 'Process All Reports';
@@ -354,6 +404,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function populateDropdown(selectId, columns, selectedColumn) {
             const select = document.getElementById(selectId);
+            if (!select) return; // Exit if element doesn't exist
+
             select.innerHTML = '';
 
             columns.forEach(col => {
@@ -387,6 +439,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Display in results section
             const resultsSection = document.getElementById('resultsSection');
+            if (!resultsSection) return; // Exit if element doesn't exist
+
             resultsSection.classList.add('show');
             resultsSection.innerHTML = `
                 <h2 style="margin-bottom: 20px; color: #333;">Status Mapping & Business Rules</h2>
@@ -486,7 +540,10 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
             });
 
             // Update the JSON display
-            document.getElementById('currentRulesJSON').textContent = JSON.stringify(STATUS_MAPPINGS, null, 2);
+            const currentRulesJSON = document.getElementById('currentRulesJSON');
+            if (currentRulesJSON) {
+                currentRulesJSON.textContent = JSON.stringify(STATUS_MAPPINGS, null, 2);
+            }
 
             // Show success message and process
             alert('Business rules updated! Now analyzing data...');
@@ -495,6 +552,8 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
 
         async function processReports() {
             const resultsSection = document.getElementById('resultsSection');
+            if (!resultsSection) return; // Exit if element doesn't exist
+
             resultsSection.classList.add('show');
             resultsSection.innerHTML = '<div class="loading">Processing reports...</div>';
 
@@ -662,13 +721,16 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
 
             } catch (error) {
                 const resultsSection = document.getElementById('resultsSection');
-                resultsSection.innerHTML = `
-                    <div class="error-message">
-                        <strong>Error analyzing data:</strong> ${error.message}
-                        <br><br>
-                        Please ensure your files have the correct format.
-                    </div>
-                `;
+                if (resultsSection) {
+                    resultsSection.innerHTML = `
+                        <div class="error-message">
+                            <strong>Error analyzing data:</strong> ${error.message}
+                            <br><br>
+                            Please ensure your files have the correct format.
+                        </div>
+                    `;
+                }
+                console.error('Error analyzing data:', error);
             }
         }
 
@@ -684,13 +746,22 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
             });
 
             // Show selected tab content
-            document.getElementById(tabName).classList.add('active');
-            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            const tabContent = document.getElementById(tabName);
+            if (tabContent) {
+                tabContent.classList.add('active');
+            }
+
+            const tabButton = document.querySelector(`[onclick="switchTab('${tabName}')"]`);
+            if (tabButton) {
+                tabButton.classList.add('active');
+            }
         }
 
         function displayResults(interfaceFailures, statusMismatches, totalRecords, totalMatched,
                                totalInterfaceFailures, totalStatusMismatches, debugInfo) {
             const resultsSection = document.getElementById('resultsSection');
+            if (!resultsSection) return; // Exit if element doesn't exist
+
             const totalIssues = totalInterfaceFailures + totalStatusMismatches;
 
             // Combine all programs from both failure types
@@ -893,17 +964,22 @@ processReports = async function() {
 
     // Update results content target
     const resultsSection = document.getElementById('resultsContent');
-    if (resultsSection) {
-        document.getElementById('resultsSection').id = 'resultsContent-original';
+    const originalResultsSection = document.getElementById('resultsSection');
+
+    if (resultsSection && originalResultsSection) {
+        originalResultsSection.id = 'resultsContent-original';
         resultsSection.id = 'resultsSection';
     }
 
     await originalProcessReports();
 
     // Restore IDs
-    if (resultsSection) {
-        document.getElementById('resultsSection').id = 'resultsContent';
-        document.getElementById('resultsContent-original').id = 'resultsSection';
+    const currentResultsSection = document.getElementById('resultsSection');
+    const renamedSection = document.getElementById('resultsContent-original');
+
+    if (currentResultsSection && renamedSection) {
+        currentResultsSection.id = 'resultsContent';
+        renamedSection.id = 'resultsSection';
     }
 };
 
@@ -927,18 +1003,21 @@ showUniqueStatuses = function(advStatusCol, salesStatusCol) {
     const originalResultsSection = document.getElementById('resultsSection');
     const statusMappingContent = document.getElementById('statusMappingContent');
 
-    if (statusMappingContent) {
+    if (statusMappingContent && originalResultsSection) {
         // Temporarily redirect resultsSection
-        document.getElementById('resultsSection').id = 'resultsSection-temp';
+        originalResultsSection.id = 'resultsSection-temp';
         statusMappingContent.id = 'resultsSection';
     }
 
     originalShowUniqueStatuses(advStatusCol, salesStatusCol);
 
-    if (statusMappingContent) {
+    const tempSection = document.getElementById('resultsSection-temp');
+    const currentStatusSection = document.getElementById('resultsSection');
+
+    if (tempSection && currentStatusSection) {
         // Restore IDs
-        statusMappingContent.id = 'statusMappingContent';
-        document.getElementById('resultsSection-temp').id = 'resultsSection';
+        currentStatusSection.id = 'statusMappingContent';
+        tempSection.id = 'resultsSection';
     }
 };
 

@@ -60,17 +60,28 @@ function showAuthenticatedUI(user) {
     const headerActions = document.querySelector('.header-actions');
     if (headerActions && user) {
         const userName = user.name || user.email;
-        headerActions.innerHTML = `
-            <span class="status-indicator">
-                <span class="status-dot"></span>
-                ` + userName + `
-            </span>
-            <span class="timestamp" id="currentTime"></span>
-            <button onclick="handleLogout()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 13px;">
-                Logout
-            </button>
-        `;
+
+        // Check if logout button already exists
+        if (!headerActions.querySelector('button[onclick="handleLogout()"]')) {
+            headerActions.innerHTML = `
+                <span class="status-indicator">
+                    <span class="status-dot"></span>
+                    ${userName}
+                </span>
+                <span class="timestamp" id="currentTime"></span>
+                <button onclick="handleLogout()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 13px;">
+                    Logout
+                </button>
+            `;
+        }
     }
+
+    // Reinitialize app handlers if function exists
+    setTimeout(() => {
+        if (typeof window.initializeFileHandlers === 'function') {
+            window.initializeFileHandlers();
+        }
+    }, 100);
 }
 
 // Handle login
