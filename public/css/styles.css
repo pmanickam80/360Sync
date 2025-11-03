@@ -751,3 +751,11 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* Business Rules Filter Buttons */
+.phase-filter-btn.active {
+    border-width: 3px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    transform: scale(1.05);
+}

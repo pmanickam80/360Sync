@@ -125,6 +125,73 @@ function getPhaseSortOrder(status360, goldieStatuses) {
     return phaseOrder[phaseInfo.phase] || 999;
 }
 
+// Filter rules based on search and phase
+function filterBusinessRules() {
+    const searchText = document.getElementById('ruleSearchInput')?.value.toLowerCase() || '';
+    const selectedPhases = Array.from(document.querySelectorAll('.phase-filter-btn.active')).map(btn => btn.dataset.phase);
+
+    const allRows = document.querySelectorAll('#businessRulesTableBody tr');
+    let visibleCount = 0;
+
+    allRows.forEach(row => {
+        if (row.classList.contains('phase-header')) {
+            // Phase headers are always visible
+            row.style.display = '';
+            return;
+        }
+
+        const status360 = row.dataset.status360 || '';
+        const goldieStatuses = row.dataset.goldieStatuses || '';
+        const phase = row.dataset.phase || '';
+
+        const matchesSearch = !searchText ||
+            status360.toLowerCase().includes(searchText) ||
+            goldieStatuses.toLowerCase().includes(searchText);
+
+        const matchesPhase = selectedPhases.length === 0 || selectedPhases.includes(phase);
+
+        if (matchesSearch && matchesPhase) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Update visible count
+    const countElement = document.getElementById('visibleRulesCount');
+    if (countElement) {
+        countElement.textContent = visibleCount;
+    }
+
+    // Hide/show phase headers based on whether they have visible rules
+    document.querySelectorAll('.phase-header').forEach(header => {
+        const phase = header.dataset.phase;
+        const hasVisibleRules = Array.from(allRows).some(row =>
+            !row.classList.contains('phase-header') &&
+            row.dataset.phase === phase &&
+            row.style.display !== 'none'
+        );
+        header.style.display = hasVisibleRules ? '' : 'none';
+    });
+}
+
+// Toggle phase filter
+function togglePhaseFilter(phase) {
+    const button = document.querySelector(`.phase-filter-btn[data-phase="${phase}"]`);
+    if (button) {
+        button.classList.toggle('active');
+        filterBusinessRules();
+    }
+}
+
+// Clear all filters
+function clearAllFilters() {
+    document.getElementById('ruleSearchInput').value = '';
+    document.querySelectorAll('.phase-filter-btn').forEach(btn => btn.classList.remove('active'));
+    filterBusinessRules();
+}
+
 // Render the business rules table with improved UI
 function renderBusinessRulesTable() {
     const container = document.getElementById('businessRulesTable');
@@ -205,6 +272,76 @@ function renderBusinessRulesTable() {
             </div>
         </div>
 
+        <!-- Search and Filter Section -->
+        <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e5e7eb;">
+            <h4 style="margin: 0 0 15px 0; color: #374151; font-size: 15px;">🔍 Search & Filter Rules</h4>
+
+            <!-- Search Input -->
+            <div style="margin-bottom: 15px;">
+                <input type="text"
+                       id="ruleSearchInput"
+                       placeholder="Search by 360 status or Goldie status..."
+                       oninput="filterBusinessRules()"
+                       style="width: 100%; padding: 10px 15px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: border 0.2s;"
+                       onfocus="this.style.borderColor='#667eea'"
+                       onblur="this.style.borderColor='#d1d5db'">
+            </div>
+
+            <!-- Phase Filter Buttons -->
+            <div style="margin-bottom: 10px;">
+                <label style="display: block; font-size: 13px; color: #6b7280; margin-bottom: 8px; font-weight: 500;">Filter by Phase:</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    <button class="phase-filter-btn" data-phase="pre-order" onclick="togglePhaseFilter('pre-order')"
+                            style="background: #f3f4f6; color: #374151; border: 2px solid #d1d5db; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; font-weight: 500;"
+                            onmouseover="if(!this.classList.contains('active')) this.style.background='#e5e7eb'"
+                            onmouseout="if(!this.classList.contains('active')) this.style.background='#f3f4f6'">
+                        ⏳ Pre-Order
+                    </button>
+                    <button class="phase-filter-btn" data-phase="authorization" onclick="togglePhaseFilter('authorization')"
+                            style="background: #dbeafe; color: #1e40af; border: 2px solid #93c5fd; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; font-weight: 500;"
+                            onmouseover="if(!this.classList.contains('active')) this.style.background='#bfdbfe'"
+                            onmouseout="if(!this.classList.contains('active')) this.style.background='#dbeafe'">
+                        ✅ Authorization
+                    </button>
+                    <button class="phase-filter-btn" data-phase="shipment" onclick="togglePhaseFilter('shipment')"
+                            style="background: #fef3c7; color: #92400e; border: 2px solid #fde047; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; font-weight: 500;"
+                            onmouseover="if(!this.classList.contains('active')) this.style.background='#fde68a'"
+                            onmouseout="if(!this.classList.contains('active')) this.style.background='#fef3c7'">
+                        📦 Shipment
+                    </button>
+                    <button class="phase-filter-btn" data-phase="delivery" onclick="togglePhaseFilter('delivery')"
+                            style="background: #d1fae5; color: #065f46; border: 2px solid #6ee7b7; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; font-weight: 500;"
+                            onmouseover="if(!this.classList.contains('active')) this.style.background='#a7f3d0'"
+                            onmouseout="if(!this.classList.contains('active')) this.style.background='#d1fae5'">
+                        🚚 Delivery
+                    </button>
+                    <button class="phase-filter-btn" data-phase="completion" onclick="togglePhaseFilter('completion')"
+                            style="background: #dcfce7; color: #065f46; border: 2px solid #86efac; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; font-weight: 500;"
+                            onmouseover="if(!this.classList.contains('active')) this.style.background='#bbf7d0'"
+                            onmouseout="if(!this.classList.contains('active')) this.style.background='#dcfce7'">
+                        ✔️ Completed
+                    </button>
+                    <button class="phase-filter-btn" data-phase="exception" onclick="togglePhaseFilter('exception')"
+                            style="background: #fee2e2; color: #991b1b; border: 2px solid #fca5a5; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; font-weight: 500;"
+                            onmouseover="if(!this.classList.contains('active')) this.style.background='#fecaca'"
+                            onmouseout="if(!this.classList.contains('active')) this.style.background='#fee2e2'">
+                        ⚠️ Exception
+                    </button>
+                    <button onclick="clearAllFilters()"
+                            style="background: white; color: #6b7280; border: 2px solid #d1d5db; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; font-weight: 500;"
+                            onmouseover="this.style.background='#f9fafb'"
+                            onmouseout="this.style.background='white'">
+                        🔄 Clear Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Count -->
+            <div style="margin-top: 10px; font-size: 13px; color: #6b7280;">
+                Showing <strong id="visibleRulesCount">${rules.length}</strong> of ${rules.length} rules
+            </div>
+        </div>
+
         <!-- Rules Table -->
         <table style="width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
             <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
@@ -218,16 +355,32 @@ function renderBusinessRulesTable() {
                     <th style="padding: 14px 12px; text-align: center; font-weight: 600; width: 15%;">Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="businessRulesTableBody">
     `;
 
+    let currentPhase = null;
     rules.forEach(([status360, goldieStatuses], index) => {
         const goldieValue = Array.isArray(goldieStatuses) ? goldieStatuses.join(', ') : '';
         const phaseInfo = getStatusPhase(status360, goldieStatuses);
         const rowColor = phaseInfo.color;
 
+        // Add phase header if this is a new phase
+        if (currentPhase !== phaseInfo.phase) {
+            currentPhase = phaseInfo.phase;
+            html += `
+                <tr class="phase-header" data-phase="${phaseInfo.phase}" style="background: linear-gradient(135deg, ${phaseInfo.color} 0%, ${phaseInfo.color} 100%); border-top: 3px solid #374151;">
+                    <td colspan="4" style="padding: 12px 15px; font-weight: 700; font-size: 14px; color: #1f2937; letter-spacing: 0.5px;">
+                        ${phaseInfo.icon} ${phaseInfo.label.toUpperCase()} PHASE
+                    </td>
+                </tr>
+            `;
+        }
+
         html += `
-            <tr style="background: ${rowColor}; border-bottom: 1px solid #e5e7eb; transition: all 0.2s;"
+            <tr data-status360="${status360.toLowerCase()}"
+                data-goldie-statuses="${goldieValue.toLowerCase()}"
+                data-phase="${phaseInfo.phase}"
+                style="background: ${rowColor}; border-bottom: 1px solid #e5e7eb; transition: all 0.2s;"
                 onmouseover="this.style.transform='scale(1.01)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';"
                 onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
                 <td style="padding: 12px; text-align: center; font-size: 18px;" title="${phaseInfo.label}">
