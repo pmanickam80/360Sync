@@ -425,46 +425,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 sales: { claimId: salesClaimIdCol, status: salesStatusCol, program: salesProgramCol }
             });
 
-            // Create column mapping UI
-            const mappingContainer = document.getElementById('columnMappingContent');
-            if (mappingContainer) {
-                mappingContainer.innerHTML = `
-                    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                        <h3 style="margin-bottom: 20px; color: #374151;">360 Advance Exchange Columns</h3>
-                        <div style="display: grid; gap: 15px; margin-bottom: 30px;">
-                            <div>
-                                <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #374151;">Claim ID Column:</label>
-                                <select id="advance360ClaimId" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;"></select>
-                            </div>
-                            <div>
-                                <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #374151;">Status Column:</label>
-                                <select id="advance360Status" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;"></select>
-                            </div>
-                            <div>
-                                <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #374151;">Program Column:</label>
-                                <select id="advance360Program" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;"></select>
-                            </div>
-                        </div>
-
-                        <h3 style="margin-bottom: 20px; color: #374151;">Goldie Sales Order Columns</h3>
-                        <div style="display: grid; gap: 15px;">
-                            <div>
-                                <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #374151;">Claim ID Column:</label>
-                                <select id="salesOrderClaimId" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;"></select>
-                            </div>
-                            <div>
-                                <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #374151;">Status Column:</label>
-                                <select id="salesOrderStatus" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;"></select>
-                            </div>
-                            <div>
-                                <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #374151;">Program Column:</label>
-                                <select id="salesOrderProgram" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;"></select>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
             // Populate 360 dropdowns
             populateDropdown('advance360ClaimId', advanceColumns, advClaimIdCol);
             populateDropdown('advance360Status', advanceColumns, advStatusCol);

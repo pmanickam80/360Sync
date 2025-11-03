@@ -759,3 +759,19 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
     transform: scale(1.05);
 }
+
+/* Submenu Items */
+.nav-subitem {
+    padding-left: 35px !important;
+    font-size: 14px !important;
+    opacity: 0.9;
+}
+
+.nav-subitem svg {
+    width: 18px !important;
+    height: 18px !important;
+}
+
+.nav-subitem:hover {
+    opacity: 1;
+}

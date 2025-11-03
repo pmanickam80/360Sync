@@ -43,23 +43,30 @@
                     </svg>
                     Upload Files
                 </a>
-                <a href="#" class="nav-item" onclick="showSection('mapping')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
-                    </svg>
-                    Column Mapping
-                </a>
-                <a href="#" class="nav-item" onclick="showSection('status')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    Business Rules
-                </a>
                 <a href="#" class="nav-item" onclick="showSection('analysis')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
                     Analysis Results
+                </a>
+
+                <!-- Setup Submenu -->
+                <div class="nav-divider" style="border-top: 1px solid #e5e7eb; margin: 10px 0; padding-top: 10px;">
+                    <div style="padding: 8px 15px; font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px;">
+                        ⚙️ Setup & Configuration
+                    </div>
+                </div>
+                <a href="#" class="nav-item nav-subitem" onclick="showSection('mapping')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                    </svg>
+                    Column Mapping
+                </a>
+                <a href="#" class="nav-item nav-subitem" onclick="showSection('status')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Business Rules
                 </a>
             </nav>
         </aside>
@@ -120,12 +127,59 @@
             <section id="mappingSection" class="content-section">
                 <div class="section-header">
                     <h2>Column Mapping</h2>
-                    <p>Verify and adjust column mappings for accurate data comparison</p>
+                    <p>Configure column mappings for accurate data comparison. These are pre-filled with default values.</p>
                 </div>
 
-                <div id="columnMappingContent" class="mapping-grid">
-                    <div class="info-message">
-                        Upload files first to configure column mappings
+                <div id="columnMappingContent" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <h3 style="margin-bottom: 20px; color: #374151;">360 Advance Exchange Columns</h3>
+                    <div style="display: grid; gap: 15px; margin-bottom: 30px;">
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #374151;">Claim ID Column:</label>
+                            <select id="advance360ClaimId" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                                <option value="ReferenceID" selected>ReferenceID</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #374151;">Status Column:</label>
+                            <select id="advance360Status" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                                <option value="CSR Status" selected>CSR Status</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #374151;">Program Column:</label>
+                            <select id="advance360Program" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                                <option value="Program Name" selected>Program Name</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-bottom: 20px; color: #374151;">Goldie Sales Order Columns</h3>
+                    <div style="display: grid; gap: 15px;">
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #374151;">Claim ID Column:</label>
+                            <select id="salesOrderClaimId" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                                <option value="CustomerPO" selected>CustomerPO</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #374151;">Status Column:</label>
+                            <select id="salesOrderStatus" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                                <option value="Delivery Status" selected>Delivery Status</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 5px; color: #374151;">Program Column:</label>
+                            <select id="salesOrderProgram" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                                <option value="Project Number" selected>Project Number</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px; padding: 15px; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 6px;">
+                        <p style="margin: 0; font-size: 13px; color: #065f46;">
+                            💡 <strong>Tip:</strong> These column mappings will be automatically updated when you upload files.
+                            If your files use different column names, the dropdowns will be populated with available columns.
+                        </p>
                     </div>
                 </div>
             </section>
