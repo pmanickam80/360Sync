@@ -363,22 +363,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 console.log('Total sales order records:', salesOrderData.length);
 
-                // Show column mapping UI
+                // Populate column mapping dropdowns
                 console.log('Populating column selectors...');
                 populateColumnSelectors();
-                const columnMapping = document.getElementById('columnMapping');
-                if (columnMapping) {
-                    columnMapping.classList.add('show');
-                }
+
+                // Automatically process reports and navigate to results
+                processBtn.textContent = 'Processing reports...';
+                console.log('Auto-processing reports after file load...');
+                await processReports();
 
                 processBtn.disabled = false;
-                processBtn.textContent = 'Process All Reports';
-                processBtn.onclick = processReports;
+                processBtn.textContent = 'Process Reports';
 
             } catch (error) {
                 alert(`Error loading files: ${error.message}`);
                 processBtn.disabled = false;
-                processBtn.textContent = 'Process All Reports';
+                processBtn.textContent = 'Process Reports';
             }
         }
 
@@ -499,6 +499,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         async function processReports() {
             console.log('🔄 processReports started');
+
+            // Navigate to analysis section first
+            showSection('analysis');
+
             const resultsContent = document.getElementById('resultsContent');
             if (!resultsContent) {
                 console.error('❌ resultsContent element not found!');
@@ -716,10 +720,6 @@ document.addEventListener('DOMContentLoaded', function() {
                               totalInterfaceFailures, totalStatusMismatches, debugInfo);
 
                 console.log('✅ displayResults called');
-
-                // Navigate to analysis section to show results
-                console.log('Navigating to analysis section...');
-                showSection('analysis');
 
             } catch (error) {
                 const resultsContent = document.getElementById('resultsContent');
