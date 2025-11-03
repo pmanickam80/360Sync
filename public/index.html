@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advance Exchange Dashboard - Operations Portal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <!-- Dashboard Header -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <div class="brand">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                </svg>
+                <div>
+                    <h1>Advance Exchange Dashboard</h1>
+                    <p class="tagline">Operations Monitoring Portal</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <span class="status-indicator">
+                    <span class="status-dot"></span>
+                    System Active
+                </span>
+                <span class="timestamp" id="currentTime"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <div class="dashboard-container">
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" onclick="showSection('upload')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4m14-7l-5-5m0 0L7 8m5-5v12"/>
+                    </svg>
+                    Upload Files
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('mapping')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                    </svg>
+                    Column Mapping
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('status')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Status Mapping
+                </a>
+                <a href="#" class="nav-item" onclick="showSection('analysis')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Analysis Results
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+
+            <!-- Upload Section -->
+            <section id="uploadSection" class="content-section active">
+                <div class="section-header">
+                    <h2>Upload Reports</h2>
+                    <p>Upload 360 Advance Exchange and Goldie Sales Order reports for synchronization analysis</p>
+                </div>
+
+                <div class="upload-grid">
+                    <div class="upload-card">
+                        <div class="upload-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <h3>360 Advance Exchange Reports</h3>
+                        <p>Upload one or more 360 reports (multiple months supported)</p>
+                        <input type="file" id="advanceExchangeFiles" accept=".csv,.xlsx,.xls" multiple class="file-input">
+                        <label for="advanceExchangeFiles" class="upload-button">
+                            Select Files
+                        </label>
+                        <div class="file-count-badge" id="advanceCount">0 files</div>
+                        <div class="file-list" id="advanceFileList"></div>
+                    </div>
+
+                    <div class="upload-card">
+                        <div class="upload-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <h3>Goldie Sales Order Reports</h3>
+                        <p>Upload one or more Goldie reports (multiple programs supported)</p>
+                        <input type="file" id="salesOrderFiles" accept=".csv,.xlsx,.xls" multiple class="file-input">
+                        <label for="salesOrderFiles" class="upload-button">
+                            Select Files
+                        </label>
+                        <div class="file-count-badge" id="salesCount">0 files</div>
+                        <div class="file-list" id="salesFileList"></div>
+                    </div>
+                </div>
+
+                <button class="primary-button" id="processBtn" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    Process Reports
+                </button>
+            </section>
+
+            <!-- Column Mapping Section -->
+            <section id="mappingSection" class="content-section">
+                <div class="section-header">
+                    <h2>Column Mapping</h2>
+                    <p>Verify and adjust column mappings for accurate data comparison</p>
+                </div>
+
+                <div id="columnMappingContent" class="mapping-grid">
+                    <div class="info-message">
+                        Upload files first to configure column mappings
+                    </div>
+                </div>
+            </section>
+
+            <!-- Status Mapping Section -->
+            <section id="statusSection" class="content-section">
+                <div class="section-header">
+                    <h2>Status Mapping & Business Rules</h2>
+                    <p>Define valid status combinations based on SOP-002 Advance Exchange Process</p>
+                </div>
+
+                <div id="statusMappingContent">
+                    <div class="info-message">
+                        Upload files first to view and configure status mappings
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analysis Results Section -->
+            <section id="analysisSection" class="content-section">
+                <div class="section-header">
+                    <h2>Analysis Results</h2>
+                    <p>Synchronization analysis and failure detection</p>
+                </div>
+
+                <div id="resultsContent">
+                    <div class="info-message">
+                        Process reports to view analysis results
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="js/auth-check.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
