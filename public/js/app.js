@@ -719,6 +719,9 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                 displayResults(interfaceFailures, statusMismatches, totalRecords, totalMatched,
                               totalInterfaceFailures, totalStatusMismatches, debugInfo);
 
+                // Navigate to analysis section to show results
+                showSection('analysis');
+
             } catch (error) {
                 const resultsSection = document.getElementById('resultsSection');
                 if (resultsSection) {
