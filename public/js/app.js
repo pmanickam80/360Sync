@@ -25,7 +25,7 @@ function showSection(sectionName) {
     }
 
     // Set active nav item (only if called from a click event)
-    if (typeof event !== 'undefined' && event && event.target) {
+    if (typeof event !== 'undefined' && event && event.target && typeof event.target.closest === 'function') {
         const navItem = event.target.closest('.nav-item');
         if (navItem) {
             navItem.classList.add('active');
