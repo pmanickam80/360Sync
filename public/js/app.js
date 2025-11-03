@@ -332,6 +332,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         async function loadFilesAndShowMapping() {
+            console.log('🚀 loadFilesAndShowMapping started');
+            console.log('Files to process:', {
+                advanceFiles: advanceExchangeFiles.length,
+                salesFiles: salesOrderFiles.length
+            });
+
             const processBtn = document.getElementById('processBtn');
             processBtn.disabled = true;
             processBtn.textContent = 'Loading files...';
@@ -340,18 +346,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Parse all advance exchange files
                 advanceExchangeData = [];
                 for (const file of advanceExchangeFiles) {
+                    console.log('Parsing advance file:', file.name);
                     const data = await parseFile(file);
+                    console.log('Parsed rows:', data.length);
                     advanceExchangeData = advanceExchangeData.concat(data);
                 }
+                console.log('Total advance exchange records:', advanceExchangeData.length);
 
                 // Parse all sales order files
                 salesOrderData = [];
                 for (const file of salesOrderFiles) {
+                    console.log('Parsing sales file:', file.name);
                     const data = await parseFile(file);
+                    console.log('Parsed rows:', data.length);
                     salesOrderData = salesOrderData.concat(data);
                 }
+                console.log('Total sales order records:', salesOrderData.length);
 
                 // Show column mapping UI
+                console.log('Populating column selectors...');
                 populateColumnSelectors();
                 const columnMapping = document.getElementById('columnMapping');
                 if (columnMapping) {
@@ -551,14 +564,20 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
         }
 
         async function processReports() {
+            console.log('🔄 processReports started');
             const resultsSection = document.getElementById('resultsSection');
-            if (!resultsSection) return; // Exit if element doesn't exist
+            if (!resultsSection) {
+                console.error('❌ resultsSection element not found!');
+                return; // Exit if element doesn't exist
+            }
 
+            console.log('✅ resultsSection found:', resultsSection);
             resultsSection.classList.add('show');
             resultsSection.innerHTML = '<div class="loading">Processing reports...</div>';
 
             try {
                 // Now process the combined data with user-selected columns
+                console.log('Calling analyzeData...');
                 analyzeData();
 
             } catch (error) {
@@ -610,15 +629,21 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
         }
 
         function analyzeData() {
+            console.log('📊 analyzeData started');
             try {
                 // Get selected columns from dropdowns
-                const advClaimIdCol = document.getElementById('advance360ClaimId').value;
-                const advStatusCol = document.getElementById('advance360Status').value;
-                const advProgramCol = document.getElementById('advance360Program').value;
+                const advClaimIdCol = document.getElementById('advance360ClaimId')?.value;
+                const advStatusCol = document.getElementById('advance360Status')?.value;
+                const advProgramCol = document.getElementById('advance360Program')?.value;
 
-                const claimIdCol = document.getElementById('salesOrderClaimId').value;
-                const statusCol = document.getElementById('salesOrderStatus').value;
-                const programCol = document.getElementById('salesOrderProgram').value;
+                const claimIdCol = document.getElementById('salesOrderClaimId')?.value;
+                const statusCol = document.getElementById('salesOrderStatus')?.value;
+                const programCol = document.getElementById('salesOrderProgram')?.value;
+
+                console.log('Selected columns:', {
+                    advance: { claimId: advClaimIdCol, status: advStatusCol, program: advProgramCol },
+                    sales: { claimId: claimIdCol, status: statusCol, program: programCol }
+                });
 
                 // Create debug info
                 const debugInfo = {
@@ -716,10 +741,22 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                 const totalStatusMismatches = Object.values(statusMismatches).flat().length;
                 const totalIssues = totalInterfaceFailures + totalStatusMismatches;
 
+                console.log('📈 Analysis complete. Calling displayResults...');
+                console.log('Results:', {
+                    totalRecords,
+                    totalMatched,
+                    totalInterfaceFailures,
+                    totalStatusMismatches,
+                    programs: Object.keys(interfaceFailures)
+                });
+
                 displayResults(interfaceFailures, statusMismatches, totalRecords, totalMatched,
                               totalInterfaceFailures, totalStatusMismatches, debugInfo);
 
+                console.log('✅ displayResults called');
+
                 // Navigate to analysis section to show results
+                console.log('Navigating to analysis section...');
                 showSection('analysis');
 
             } catch (error) {
@@ -762,9 +799,14 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
 
         function displayResults(interfaceFailures, statusMismatches, totalRecords, totalMatched,
                                totalInterfaceFailures, totalStatusMismatches, debugInfo) {
+            console.log('🎨 displayResults started');
             const resultsSection = document.getElementById('resultsSection');
-            if (!resultsSection) return; // Exit if element doesn't exist
+            if (!resultsSection) {
+                console.error('❌ resultsSection not found in displayResults!');
+                return; // Exit if element doesn't exist
+            }
 
+            console.log('✅ resultsSection found, generating HTML...');
             const totalIssues = totalInterfaceFailures + totalStatusMismatches;
 
             // Combine all programs from both failure types
@@ -934,6 +976,7 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                 </div>
             `;
 
+            console.log('Setting resultsSection.innerHTML...');
             resultsSection.innerHTML = `
                 <h2 style="margin-bottom: 20px; color: #333;">Analysis Results</h2>
                 ${tabsHTML}
@@ -941,6 +984,7 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                 ${programTabsHTML}
                 ${businessRulesHTML}
             `;
+            console.log('✅ Results HTML set successfully!');
         }
 
 // Adapt functions to new dashboard structure
