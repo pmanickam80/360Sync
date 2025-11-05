@@ -1235,6 +1235,9 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                 let goldieDeliveryStatus = 'Not Found';
 
                 if (goldieOrderData) {
+                    // Goldie order exists - start with empty status
+                    goldieDeliveryStatus = '';
+
                     // First try the status field (mapped from user-selected column)
                     if (goldieOrderData.status && goldieOrderData.status.trim() !== '') {
                         goldieDeliveryStatus = goldieOrderData.status;
@@ -1263,6 +1266,11 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                                 break;
                             }
                         }
+                    }
+
+                    // If still empty after checking all columns, show as pending
+                    if (!goldieDeliveryStatus || goldieDeliveryStatus.trim() === '') {
+                        goldieDeliveryStatus = 'Pending Shipment';
                     }
                 }
 
