@@ -6,8 +6,8 @@ set -e
 
 PROJECT_ID="servifyportal"
 REGION="us-central1"
-SERVICE_NAME="360sync-dashboard"
-REPOSITORY="360sync"
+SERVICE_NAME="sync360-dashboard"
+REPOSITORY="sync360"
 
 echo "================================="
 echo "  360Sync Deployment to Cloud Run"
@@ -54,7 +54,7 @@ gcloud run deploy $SERVICE_NAME \
     --platform managed \
     --allow-unauthenticated \
     --set-env-vars NODE_ENV=production,GOOGLE_CLOUD_PROJECT=$PROJECT_ID \
-    --set-secrets SESSION_SECRET=session-secret:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,GMAIL_USERNAME=gmail-username:latest,GMAIL_APP_PASSWORD=gmail-app-password:latest,NOTIFICATION_FROM_EMAIL=notification-from-email:latest,NOTIFICATION_TO_EMAILS=notification-to-emails:latest \
+    --set-secrets SESSION_SECRET=session-secret:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,GMAIL_USERNAME=gmail-username:latest,GMAIL_APP_PASSWORD=GMAIL_APP_PASSWORD:latest,NOTIFICATION_FROM_EMAIL=notification-from-email:latest,NOTIFICATION_TO_EMAILS=notification-to-emails:latest \
     --memory 512Mi \
     --cpu 1 \
     --max-instances 10 \
