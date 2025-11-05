@@ -4,6 +4,8 @@ const cors = require('cors');
 const path = require('path');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
+const { Firestore } = require('@google-cloud/firestore');
+const FirestoreStore = require('firestore-store')(session);
 const { authService } = require('./services/auth');
 const emailService = require('./services/emailService');
 const { firestoreService } = require('./services/firestore');
@@ -12,19 +14,37 @@ const { analyticsMiddleware, getRequestMetadata } = require('./services/analytic
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Initialize Firestore for session storage
+const firestore = new Firestore({
+    projectId: process.env.GOOGLE_CLOUD_PROJECT || 'servifyportal',
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
-app.use(session({
+
+// Session configuration with Firestore store (for Cloud Run)
+const sessionConfig = {
     secret: process.env.SESSION_SECRET || 'default-secret-change-in-production',
     resave: false,
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        sameSite: 'lax'
     }
-}));
+};
+
+// Use Firestore for session storage in production
+if (process.env.NODE_ENV === 'production') {
+    sessionConfig.store = new FirestoreStore({
+        database: firestore
+    });
+}
+
+app.use(session(sessionConfig));
 
 // Auth routes
 app.get('/auth/google', (req, res) => {
