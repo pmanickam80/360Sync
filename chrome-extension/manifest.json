@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "360 Claim Fetcher",
+  "version": "1.0.0",
+  "description": "Automatically fetch claim details from 360 application",
+  "permissions": [
+    "tabs",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://360-us.servify.tech/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://360-us.servify.tech/*"],
+      "js": ["content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "externally_connectable": {
+    "matches": ["http://localhost:3000/*", "http://127.0.0.1:3000/*"]
+  }
+}
