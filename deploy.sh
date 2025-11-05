@@ -53,7 +53,7 @@ gcloud run deploy $SERVICE_NAME \
     --region $REGION \
     --platform managed \
     --allow-unauthenticated \
-    --set-env-vars NODE_ENV=production,GOOGLE_CLOUD_PROJECT=$PROJECT_ID \
+    --set-env-vars NODE_ENV=production,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_REDIRECT_URI=https://sync360-dashboard-815407754077.us-central1.run.app/auth/google/callback,SMTP_HOST=smtp.gmail.com,SMTP_PORT=587 \
     --set-secrets SESSION_SECRET=session-secret:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,GMAIL_USERNAME=gmail-username:latest,GMAIL_APP_PASSWORD=GMAIL_APP_PASSWORD:latest,NOTIFICATION_FROM_EMAIL=notification-from-email:latest,NOTIFICATION_TO_EMAILS=notification-to-emails:latest \
     --memory 512Mi \
     --cpu 1 \
