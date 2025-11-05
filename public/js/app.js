@@ -1232,7 +1232,30 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
 
                 // Get Goldie delivery status
                 const goldieOrderData = salesOrderMap.get(claimId);
-                const goldieDeliveryStatus = goldieOrderData ? (goldieOrderData.deliveryStatus || goldieOrderData.status) : 'Not Found';
+                let goldieDeliveryStatus = 'Not Found';
+
+                if (goldieOrderData) {
+                    // First try the status field (mapped from user-selected column)
+                    if (goldieOrderData.status && goldieOrderData.status.trim() !== '') {
+                        goldieDeliveryStatus = goldieOrderData.status;
+                    } else if (goldieOrderData.data) {
+                        // Fall back to checking common delivery status column names in raw data
+                        const rawRow = goldieOrderData.data;
+                        const deliveryStatusKeys = [
+                            'Delivery Status', 'delivery status', 'DELIVERY STATUS',
+                            'DeliveryStatus', 'deliverystatus', 'Fulfillment Status',
+                            'fulfillment status', 'Order Status', 'order status',
+                            'Status', 'status', 'STATE', 'State'
+                        ];
+
+                        for (const key of deliveryStatusKeys) {
+                            if (rawRow[key] && rawRow[key].toString().trim() !== '') {
+                                goldieDeliveryStatus = rawRow[key].toString();
+                                break;
+                            }
+                        }
+                    }
+                }
 
                 const claimInfo = {
                     claimId: claimId,
