@@ -6,6 +6,8 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const { authService } = require('./services/auth');
 const emailService = require('./services/emailService');
+const { firestoreService } = require('./services/firestore');
+const { analyticsMiddleware, getRequestMetadata } = require('./services/analytics');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,6 +45,15 @@ app.get('/auth/google/callback', async (req, res) => {
         // Store user in session
         req.session.user = user;
 
+        // Track user login with metadata
+        if (firestoreService.isAvailable()) {
+            const metadata = getRequestMetadata(req);
+            firestoreService.trackUserLogin({
+                ...user,
+                ...metadata
+            }).catch(err => console.error('Error tracking login:', err));
+        }
+
         // Redirect to dashboard
         res.redirect('/');
     } catch (error) {
@@ -52,6 +63,14 @@ app.get('/auth/google/callback', async (req, res) => {
 });
 
 app.post('/auth/logout', (req, res) => {
+    const userEmail = req.session?.user?.email;
+
+    // Track user logout
+    if (userEmail && firestoreService.isAvailable()) {
+        firestoreService.trackUserLogout(userEmail)
+            .catch(err => console.error('Error tracking logout:', err));
+    }
+
     req.session.destroy();
     res.json({ success: true });
 });
@@ -81,8 +100,80 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// Admin/Analytics API endpoints
+app.get('/api/admin/users', async (req, res) => {
+    try {
+        if (!firestoreService.isAvailable()) {
+            return res.json({
+                success: false,
+                error: 'Analytics not available in development mode'
+            });
+        }
+
+        const stats = await firestoreService.getUserStats();
+        res.json({ success: true, data: stats });
+    } catch (error) {
+        console.error('Error getting user stats:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/admin/activity', async (req, res) => {
+    try {
+        if (!firestoreService.isAvailable()) {
+            return res.json({
+                success: false,
+                error: 'Analytics not available in development mode'
+            });
+        }
+
+        const limit = parseInt(req.query.limit) || 50;
+        const activity = await firestoreService.getRecentActivity(limit);
+        res.json({ success: true, data: activity });
+    } catch (error) {
+        console.error('Error getting recent activity:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/admin/reports', async (req, res) => {
+    try {
+        if (!firestoreService.isAvailable()) {
+            return res.json({
+                success: false,
+                error: 'Analytics not available in development mode'
+            });
+        }
+
+        const days = parseInt(req.query.days) || 30;
+        const stats = await firestoreService.getReportStats(days);
+        res.json({ success: true, data: stats });
+    } catch (error) {
+        console.error('Error getting report stats:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/admin/status', (req, res) => {
+    res.json({
+        success: true,
+        data: {
+            firestoreAvailable: firestoreService.isAvailable(),
+            authConfigured: authService.isConfigured(),
+            emailConfigured: !!(process.env.GMAIL_USERNAME && process.env.GMAIL_APP_PASSWORD),
+            environment: process.env.NODE_ENV || 'development',
+            projectId: process.env.GOOGLE_CLOUD_PROJECT || 'servifyportal'
+        }
+    });
+});
+
 // Email notification endpoint
-app.post('/api/notify/preprocessing', async (req, res) => {
+app.post('/api/notify/preprocessing',
+    analyticsMiddleware('send_notification', (req) => ({
+        claimsCount: Object.values(req.body.claimsData || {}).reduce((sum, claims) => sum + claims.length, 0),
+        programs: Object.keys(req.body.claimsData || {}).length
+    })),
+    async (req, res) => {
     try {
         const { claimsData, recipients } = req.body;
 

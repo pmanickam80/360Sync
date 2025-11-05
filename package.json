@@ -16,6 +16,9 @@
   "author": "Servify Operations",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/firestore": "^7.0.0",
+    "@google-cloud/logging": "^11.0.0",
+    "@google-cloud/secret-manager": "^5.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
