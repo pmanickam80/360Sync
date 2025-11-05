@@ -14,13 +14,23 @@ const { analyticsMiddleware, getRequestMetadata } = require('./services/analytic
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy - Cloud Run is behind Google's load balancer
+app.set('trust proxy', 1);
+
 // Initialize Firestore for session storage
 const firestore = new Firestore({
     projectId: process.env.GOOGLE_CLOUD_PROJECT || 'servifyportal',
 });
 
 // Middleware
-app.use(cors());
+// Configure CORS properly for production to allow credentials
+const corsOptions = {
+    origin: process.env.NODE_ENV === 'production'
+        ? 'https://sync360-dashboard-815407754077.us-central1.run.app'
+        : true,
+    credentials: true
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
