@@ -1117,9 +1117,20 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
             salesOrderData.forEach(row => {
                 const claimId = normalizeClaimId(row[claimIdCol]);
                 if (claimId) {
+                    // Extract order number from common column names
+                    let orderNumber = '';
+                    const orderNumberKeys = ['Order No', 'order no', 'OrderNo', 'Order Number', 'order number'];
+                    for (const key of orderNumberKeys) {
+                        if (row[key] && row[key].toString().trim() !== '') {
+                            orderNumber = row[key].toString().trim();
+                            break;
+                        }
+                    }
+
                     salesOrderMap.set(claimId, {
                         program: row[programCol] || 'Unknown',
                         status: row[statusCol] || '',
+                        orderNumber: orderNumber,
                         data: row
                     });
                 }
@@ -1286,6 +1297,7 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                     daysSinceCreated: daysSinceCreated,
                     hasGoldieOrder: salesOrderMap.has(claimId),
                     goldieStatus: salesOrderMap.has(claimId) ? salesOrderMap.get(claimId).status : 'Not Found',
+                    goldieOrderNumber: goldieOrderData ? (goldieOrderData.orderNumber || '') : '',
                     goldieDeliveryStatus: goldieDeliveryStatus,
                     advanceData: row
                 };
@@ -1420,6 +1432,7 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                                 <th>Claim Type</th>
                                 <th>CSR Status</th>
                                 <th>Goldie Order</th>
+                                <th>Goldie Order #</th>
                                 <th>Goldie Delivery Status</th>
                                 <th>Created Date</th>
                                 <th>Days Old</th>
@@ -1464,6 +1477,7 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                                     <td><span class="status-badge ${claimTypeBadgeClass}">${c.claimType}</span></td>
                                     <td><span class="status-badge status-sales">${c.status360}</span></td>
                                     <td style="text-align: center;">${c.hasGoldieOrder ? '✅ Yes' : '❌ No'}</td>
+                                    <td style="text-align: center;">${c.goldieOrderNumber || '-'}</td>
                                     <td style="text-align: center;">${deliveryStatusBadge}</td>
                                     <td>${formattedDate}</td>
                                     <td style="text-align: center;">${c.daysSinceCreated !== null ? c.daysSinceCreated : '-'}</td>
@@ -1788,6 +1802,7 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                     'Claim Type': claim.claimType,
                     '360 Status': claim.status360,
                     'Has Goldie Order': claim.hasGoldieOrder ? 'Yes' : 'No',
+                    'Goldie Order Number': claim.goldieOrderNumber || '',
                     'Goldie Status': claim.goldieStatus || 'N/A',
                     'Goldie Delivery Status': claim.goldieDeliveryStatus || 'N/A',
                     'Delivery Mismatch': claim.isDeliveryMismatch ? 'YES - CRITICAL' : 'No',
