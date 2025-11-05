@@ -1240,12 +1240,21 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                         goldieDeliveryStatus = goldieOrderData.status;
                     } else if (goldieOrderData.data) {
                         // Fall back to checking common delivery status column names in raw data
+                        // Priority: "Delivery Status" first, then other variations
+                        // NOTE: Do NOT include "State" as it refers to US state (KY, MI, etc.)
                         const rawRow = goldieOrderData.data;
                         const deliveryStatusKeys = [
-                            'Delivery Status', 'delivery status', 'DELIVERY STATUS',
-                            'DeliveryStatus', 'deliverystatus', 'Fulfillment Status',
-                            'fulfillment status', 'Order Status', 'order status',
-                            'Status', 'status', 'STATE', 'State'
+                            'Delivery Status',        // Exact match - highest priority
+                            'delivery status',
+                            'DELIVERY STATUS',
+                            'DeliveryStatus',
+                            'deliverystatus',
+                            'Fulfillment Status',
+                            'fulfillment status',
+                            'Order Status',
+                            'order status',
+                            'Status',
+                            'status'
                         ];
 
                         for (const key of deliveryStatusKeys) {
