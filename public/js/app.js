@@ -1012,8 +1012,20 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
             shipmentException: [
                 'replacement request raised',  // Replacement created - verify Goldie
                 'replacement authorized',      // Replacement authorized - verify Goldie
+                'replacement approved',         // Replacement approved - verify Goldie
+                'replacement allocated',        // Replacement allocated - verify Goldie
+                'replacement shipment created', // Shipment created - verify Goldie
                 'delivery exception',
                 'collection order created'
+            ],
+
+            // Early stage statuses that should NOT have "Delivered" in Goldie
+            earlyStageStatuses: [
+                'replacement request raised',
+                'replacement authorized',
+                'replacement approved',
+                'replacement allocated',
+                'replacement shipment created'
             ],
 
             // Tab 4: Return Device Exceptions
@@ -1218,6 +1230,10 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                     }
                 }
 
+                // Get Goldie delivery status
+                const goldieOrderData = salesOrderMap.get(claimId);
+                const goldieDeliveryStatus = goldieOrderData ? (goldieOrderData.deliveryStatus || goldieOrderData.status) : 'Not Found';
+
                 const claimInfo = {
                     claimId: claimId,
                     program: program,
@@ -1230,8 +1246,15 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                     daysSinceCreated: daysSinceCreated,
                     hasGoldieOrder: salesOrderMap.has(claimId),
                     goldieStatus: salesOrderMap.has(claimId) ? salesOrderMap.get(claimId).status : 'Not Found',
+                    goldieDeliveryStatus: goldieDeliveryStatus,
                     advanceData: row
                 };
+
+                // Check for delivery status mismatch exception
+                const normalized360Status = normalizeStatus(status360);
+                const isEarlyStage = STATUS_CATEGORIES.earlyStageStatuses.includes(normalized360Status);
+                const isGoldieDelivered = goldieDeliveryStatus && goldieDeliveryStatus.toLowerCase().includes('delivered');
+                claimInfo.isDeliveryMismatch = isEarlyStage && isGoldieDelivered;
 
                 // Categorize claim
                 if (category === 'preProcessing') {
@@ -1357,6 +1380,7 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                                 <th>Claim Type</th>
                                 <th>CSR Status</th>
                                 <th>Goldie Order</th>
+                                <th>Goldie Delivery Status</th>
                                 <th>Created Date</th>
                                 <th>Days Old</th>
                                 <th>Actions</th>
@@ -1383,14 +1407,24 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                                     claimTypeBadgeClass = ''; // Default
                                 }
 
+                                // Highlight row if there's a delivery status mismatch
+                                const rowStyle = c.isDeliveryMismatch ? 'background-color: #fef3c7; border-left: 4px solid #f59e0b;' : '';
+
+                                // Format Goldie delivery status
+                                const deliveryStatus = c.goldieDeliveryStatus || 'N/A';
+                                const deliveryStatusBadge = c.isDeliveryMismatch ?
+                                    `<span class="status-badge" style="background: #dc2626; color: white;">⚠️ ${deliveryStatus}</span>` :
+                                    deliveryStatus;
+
                                 return `
-                                <tr>
+                                <tr style="${rowStyle}">
                                     <td><strong>${c.claimId}</strong></td>
                                     <td>${c.businessUnit}</td>
                                     <td>${c.program}</td>
                                     <td><span class="status-badge ${claimTypeBadgeClass}">${c.claimType}</span></td>
                                     <td><span class="status-badge status-sales">${c.status360}</span></td>
                                     <td style="text-align: center;">${c.hasGoldieOrder ? '✅ Yes' : '❌ No'}</td>
+                                    <td style="text-align: center;">${deliveryStatusBadge}</td>
                                     <td>${formattedDate}</td>
                                     <td style="text-align: center;">${c.daysSinceCreated !== null ? c.daysSinceCreated : '-'}</td>
                                     <td style="text-align: center;">
@@ -1477,9 +1511,21 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
             const replacementShipmentCount = Object.values(replacementShipmentExceptions).flat().length;
             const otherShipmentCount = Object.values(otherShipmentExceptions).flat().length;
 
+            // Store in window for export functionality
+            window.replacementShipmentExceptions = replacementShipmentExceptions;
+            window.otherShipmentExceptions = otherShipmentExceptions;
+
             const tab3HTML = `
                 <div class="tab-content" id="liveTab_shipmentException">
-                    <h3 style="margin-bottom: 20px; color: #333;">Shipment Exceptions</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin: 0; color: #333;">Shipment Exceptions</h3>
+                        ${(replacementShipmentCount + otherShipmentCount) > 0 ? `
+                            <button onclick="exportShipmentExceptions('all')"
+                                    style="padding: 10px 20px; background: #6366f1; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                                📊 Export All Shipment Exceptions
+                            </button>
+                        ` : ''}
+                    </div>
 
                     <!-- Replacement Shipment Exceptions Section -->
                     <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #f59e0b;">
@@ -1499,10 +1545,16 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                                                style="padding: 6px 10px; border: 1px solid #d97706; border-radius: 4px; font-size: 12px; width: 300px;"
                                                placeholder="Enter email addresses (comma-separated)">
                                     </div>
-                                    <button onclick="sendReplacementShipmentNotification()" id="notifyReplacementShipmentBtn"
-                                            style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
-                                        📧 Notify Team
-                                    </button>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button onclick="exportShipmentExceptions('replacement')"
+                                                style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                                            📊 Export to Excel
+                                        </button>
+                                        <button onclick="sendReplacementShipmentNotification()" id="notifyReplacementShipmentBtn"
+                                                style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                                            📧 Notify Team
+                                        </button>
+                                    </div>
                                 </div>
                             ` : ''}
                         </div>
@@ -1520,11 +1572,19 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
 
                     <!-- Other Shipment Exceptions Section -->
                     <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; border-left: 4px solid #6b7280;">
-                        <div style="margin-bottom: 15px;">
-                            <h4 style="margin: 0 0 5px 0; color: #374151;">📦 Other Shipment Exceptions (${otherShipmentCount})</h4>
-                            <p style="font-size: 13px; color: #6b7280; margin: 0;">
-                                Delivery exceptions, collection issues, and other shipment problems
-                            </p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div>
+                                <h4 style="margin: 0 0 5px 0; color: #374151;">📦 Other Shipment Exceptions (${otherShipmentCount})</h4>
+                                <p style="font-size: 13px; color: #6b7280; margin: 0;">
+                                    Delivery exceptions, collection issues, and other shipment problems
+                                </p>
+                            </div>
+                            ${otherShipmentCount > 0 ? `
+                                <button onclick="exportShipmentExceptions('other')"
+                                        style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                                    📊 Export to Excel
+                                </button>
+                            ` : ''}
                         </div>
                         ${otherShipmentCount > 0 ? `
                             <div class="program-tabs-container">
@@ -1644,6 +1704,87 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
         function exportInterfaceFailures() {
             // TODO: Implement Excel export functionality
             alert('Excel export functionality will be implemented in the next update');
+        }
+
+        // Export shipment exceptions to Excel
+        function exportShipmentExceptions(exceptionType) {
+            try {
+                let claims = [];
+                let fileName = '';
+
+                if (exceptionType === 'replacement') {
+                    // Get all replacement shipment exceptions
+                    Object.values(window.replacementShipmentExceptions || {}).forEach(programClaims => {
+                        claims = claims.concat(programClaims);
+                    });
+                    fileName = 'Replacement_Shipment_Exceptions';
+                } else if (exceptionType === 'other') {
+                    // Get all other shipment exceptions
+                    Object.values(window.otherShipmentExceptions || {}).forEach(programClaims => {
+                        claims = claims.concat(programClaims);
+                    });
+                    fileName = 'Other_Shipment_Exceptions';
+                } else if (exceptionType === 'all') {
+                    // Get all shipment exceptions
+                    Object.values(window.replacementShipmentExceptions || {}).forEach(programClaims => {
+                        claims = claims.concat(programClaims);
+                    });
+                    Object.values(window.otherShipmentExceptions || {}).forEach(programClaims => {
+                        claims = claims.concat(programClaims);
+                    });
+                    fileName = 'All_Shipment_Exceptions';
+                }
+
+                if (claims.length === 0) {
+                    alert('No shipment exceptions to export');
+                    return;
+                }
+
+                // Prepare data for export
+                const exportData = claims.map(claim => ({
+                    'Claim ID': claim.claimId,
+                    'Business Unit': claim.businessUnit,
+                    'Program': claim.program,
+                    'Claim Type': claim.claimType,
+                    '360 Status': claim.status360,
+                    'Has Goldie Order': claim.hasGoldieOrder ? 'Yes' : 'No',
+                    'Goldie Status': claim.goldieStatus || 'N/A',
+                    'Goldie Delivery Status': claim.goldieDeliveryStatus || 'N/A',
+                    'Delivery Mismatch': claim.isDeliveryMismatch ? 'YES - CRITICAL' : 'No',
+                    'Created Date': claim.createdDate instanceof Date ?
+                        claim.createdDate.toLocaleDateString('en-US') :
+                        (claim.createdDate || 'N/A'),
+                    'Days Old': claim.daysSinceCreated !== null ? claim.daysSinceCreated : 'N/A'
+                }));
+
+                // Create workbook and worksheet
+                const worksheet = XLSX.utils.json_to_sheet(exportData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Shipment Exceptions');
+
+                // Auto-size columns
+                const maxWidth = 50;
+                const colWidths = Object.keys(exportData[0]).map(key => {
+                    const maxLength = Math.max(
+                        key.length,
+                        ...exportData.map(row => String(row[key] || '').length)
+                    );
+                    return { wch: Math.min(maxLength + 2, maxWidth) };
+                });
+                worksheet['!cols'] = colWidths;
+
+                // Generate file name with timestamp
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                const fullFileName = `${fileName}_${timestamp}.xlsx`;
+
+                // Download file
+                XLSX.writeFile(workbook, fullFileName);
+
+                alert(`Exported ${claims.length} shipment exception(s) to ${fullFileName}`);
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('Error exporting data: ' + error.message);
+            }
         }
 
         // Chrome Extension Communication
