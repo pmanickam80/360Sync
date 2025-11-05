@@ -1647,10 +1647,15 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
         }
 
         // Chrome Extension Communication
-        const EXTENSION_ID = 'nflcnflijbghkjojnglpkgejjobihomf'; // 360 Claim Fetcher Extension
+        // Get extension ID from localStorage (configured in Settings page)
+        function getExtensionId() {
+            return localStorage.getItem('CHROME_EXTENSION_ID') || 'nflcnflijbghkjojnglpkgejjobihomf';
+        }
 
         async function fetch360ClaimDetails(claimId) {
             console.log('Fetching 360 details for claim:', claimId);
+
+            const EXTENSION_ID = getExtensionId();
 
             // Find the button and show loading state
             const button = event?.target;
@@ -1694,11 +1699,13 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                         throw new Error(response?.error || 'Failed to fetch claim details');
                     }
                 } else {
-                    // Extension not installed - show instruction
-                    alert('360 Claim Fetcher Extension not installed!\n\n' +
-                          'Please install the Chrome extension from:\n' +
-                          '360Sync/chrome-extension/\n\n' +
-                          'See chrome-extension/README.md for installation instructions.');
+                    // Extension not available
+                    if (confirm('360 Claim Fetcher Extension not detected!\n\n' +
+                          '1. Make sure the extension is installed and enabled\n' +
+                          '2. Configure your extension ID in Settings\n\n' +
+                          'Click OK to open Settings page, or Cancel to dismiss.')) {
+                        window.open('/settings.html', '_blank');
+                    }
                     return null;
                 }
             } catch (error) {
@@ -1715,11 +1722,14 @@ ${JSON.stringify(STATUS_MAPPINGS, null, 2)}
                     }, 2000);
                 }
 
-                alert(`Error fetching claim details: ${error.message}\n\n` +
+                if (confirm(`Error fetching claim details: ${error.message}\n\n` +
                       'Make sure:\n' +
-                      '1. Chrome extension is installed\n' +
-                      '2. You are logged into 360 application\n' +
-                      '3. Extension has necessary permissions');
+                      '1. Chrome extension is installed and enabled\n' +
+                      '2. Extension ID is configured in Settings\n' +
+                      '3. You are logged into 360 application\n\n' +
+                      'Click OK to open Settings, or Cancel to dismiss.')) {
+                    window.open('/settings.html', '_blank');
+                }
                 return null;
             }
         }

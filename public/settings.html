@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - 360Sync Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .settings-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .settings-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .settings-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .settings-section h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: monospace;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group .help-text {
+            font-size: 13px;
+            color: #777;
+            margin-top: 5px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #555;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+        }
+
+        .back-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .instruction-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .instruction-card h4 {
+            margin-top: 0;
+            color: #667eea;
+        }
+
+        .instruction-card ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .instruction-card li {
+            margin-bottom: 8px;
+        }
+
+        .current-value {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-configured {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-not-configured {
+            background: #fff3cd;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-container">
+        <div class="settings-header">
+            <a href="/" class="back-link">← Back to Dashboard</a>
+            <h1>⚙️ Settings</h1>
+            <p>Configure your Chrome extension and other preferences</p>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <div class="settings-section">
+            <h2>
+                Chrome Extension Configuration
+                <span id="extension-status" class="status-badge status-not-configured">Not Configured</span>
+            </h2>
+
+            <div class="instruction-card">
+                <h4>📦 How to Get Your Extension ID</h4>
+                <ol>
+                    <li>Open Chrome and go to <code>chrome://extensions/</code></li>
+                    <li>Find "360 Claim Fetcher" in the list</li>
+                    <li>Copy the <strong>ID</strong> shown below the extension name</li>
+                    <li>Paste it in the field below and click "Save"</li>
+                </ol>
+                <p><strong>Note:</strong> Each Chrome installation has a unique extension ID. This setting is saved locally in your browser.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="extension-id">Chrome Extension ID</label>
+                <input
+                    type="text"
+                    id="extension-id"
+                    placeholder="e.g., nflcnflijbghkjojnglpkgejjobihomf"
+                    pattern="[a-z]{32}"
+                    maxlength="32"
+                >
+                <div class="help-text">
+                    The extension ID is a 32-character lowercase string. Example: <code>nflcnflijbghkjojnglpkgejjobihomf</code>
+                </div>
+            </div>
+
+            <div class="form-group" id="current-value-container" style="display: none;">
+                <label>Current Extension ID</label>
+                <div class="current-value" id="current-extension-id"></div>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveExtensionId()">💾 Save Extension ID</button>
+            <button class="btn btn-secondary" onclick="testExtension()">🧪 Test Connection</button>
+            <button class="btn btn-secondary" onclick="clearExtensionId()">🗑️ Clear</button>
+        </div>
+
+        <div class="settings-section">
+            <h2>🔧 Troubleshooting</h2>
+
+            <div class="instruction-card">
+                <h4>Extension not working?</h4>
+                <ul>
+                    <li><strong>Make sure the extension is installed:</strong> Go to <code>chrome://extensions/</code> and verify "360 Claim Fetcher" is installed and enabled</li>
+                    <li><strong>Check the extension ID:</strong> The ID should be exactly 32 lowercase letters (no numbers, no hyphens)</li>
+                    <li><strong>Reload the extension:</strong> Click the reload button (🔄) next to the extension in <code>chrome://extensions/</code></li>
+                    <li><strong>Try the Test Connection button:</strong> This will verify if your browser can communicate with the extension</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load current settings on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadCurrentSettings();
+        });
+
+        function loadCurrentSettings() {
+            const extensionId = localStorage.getItem('CHROME_EXTENSION_ID');
+
+            if (extensionId) {
+                document.getElementById('extension-id').value = extensionId;
+                document.getElementById('current-extension-id').textContent = extensionId;
+                document.getElementById('current-value-container').style.display = 'block';
+                document.getElementById('extension-status').textContent = 'Configured';
+                document.getElementById('extension-status').className = 'status-badge status-configured';
+            }
+        }
+
+        function showAlert(message, type = 'success') {
+            const container = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            alert.textContent = message;
+
+            container.innerHTML = '';
+            container.appendChild(alert);
+
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        function saveExtensionId() {
+            const extensionId = document.getElementById('extension-id').value.trim();
+
+            // Validate extension ID format
+            if (!extensionId) {
+                showAlert('Please enter an extension ID', 'warning');
+                return;
+            }
+
+            if (!/^[a-z]{32}$/.test(extensionId)) {
+                showAlert('Invalid extension ID format. It should be 32 lowercase letters.', 'warning');
+                return;
+            }
+
+            // Save to localStorage
+            localStorage.setItem('CHROME_EXTENSION_ID', extensionId);
+
+            // Update UI
+            document.getElementById('current-extension-id').textContent = extensionId;
+            document.getElementById('current-value-container').style.display = 'block';
+            document.getElementById('extension-status').textContent = 'Configured';
+            document.getElementById('extension-status').className = 'status-badge status-configured';
+
+            showAlert('✅ Extension ID saved successfully! You can now use the "Fetch 360" feature.', 'success');
+        }
+
+        function clearExtensionId() {
+            if (!confirm('Are you sure you want to clear the extension ID?')) {
+                return;
+            }
+
+            localStorage.removeItem('CHROME_EXTENSION_ID');
+            document.getElementById('extension-id').value = '';
+            document.getElementById('current-value-container').style.display = 'none';
+            document.getElementById('extension-status').textContent = 'Not Configured';
+            document.getElementById('extension-status').className = 'status-badge status-not-configured';
+
+            showAlert('Extension ID cleared', 'info');
+        }
+
+        async function testExtension() {
+            const extensionId = localStorage.getItem('CHROME_EXTENSION_ID');
+
+            if (!extensionId) {
+                showAlert('Please save an extension ID first', 'warning');
+                return;
+            }
+
+            showAlert('Testing connection to extension...', 'info');
+
+            try {
+                // Try to ping the extension
+                if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+                    chrome.runtime.sendMessage(
+                        extensionId,
+                        { action: 'ping' },
+                        (response) => {
+                            if (chrome.runtime.lastError) {
+                                showAlert('❌ Cannot connect to extension: ' + chrome.runtime.lastError.message + '. Make sure the extension is installed and enabled.', 'warning');
+                            } else if (response && response.success) {
+                                showAlert('✅ Extension is working! Connection successful.', 'success');
+                            } else {
+                                showAlert('❌ Extension responded but something is wrong. Try reloading the extension.', 'warning');
+                            }
+                        }
+                    );
+                } else {
+                    showAlert('❌ Chrome extension API not available. Make sure you are using Chrome browser.', 'warning');
+                }
+            } catch (error) {
+                showAlert('❌ Error testing extension: ' + error.message, 'warning');
+            }
+        }
+    </script>
+</body>
+</html>
