@@ -10,7 +10,8 @@
   ],
   "host_permissions": [
     "https://360-us.servify.tech/*",
-    "http://localhost:3000/*"
+    "http://localhost:3000/*",
+    "https://sync360-dashboard-815407754077.us-central1.run.app/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -36,6 +37,10 @@
     "128": "icon128.png"
   },
   "externally_connectable": {
-    "matches": ["http://localhost:3000/*", "http://127.0.0.1:3000/*"]
+    "matches": [
+      "http://localhost:3000/*",
+      "http://127.0.0.1:3000/*",
+      "https://sync360-dashboard-815407754077.us-central1.run.app/*"
+    ]
   }
 }
